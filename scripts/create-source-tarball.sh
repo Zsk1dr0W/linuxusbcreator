@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-version=${1:-0.5.0}
+version=${1:-0.5.1}
 output_dir=${2:-dist}
 archive="linuxusbcreator-${version}"
 

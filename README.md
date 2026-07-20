@@ -24,6 +24,12 @@ Windows Setup. ARM64 is UEFI-only and remains experimental because physical
 ARM64 hardware was not available for its boot test. NTFS is outside the 0.5.0
 scope.
 
+M4.1 changes the UEFI/GPT FAT32 partition from EFI System to Microsoft Basic
+Data so Windows can assign it a drive letter and Linux file managers can expose
+it normally after reconnection. The removable-media loader remains under
+`EFI/BOOT`; physical boot and Windows Explorer validation are required before
+publishing 0.5.1.
+
 ## Initial goals
 
 - Detect removable USB devices conservatively.
@@ -131,8 +137,9 @@ splitting, synchronization, and verification run as the desktop user.
 Every measurable stage reports its own percentage; atomic partitioning,
 formatting, mounting, and synchronization report their binary completion.
 After verification the Windows target is synchronized and safely unmounted.
-An UEFI/GPT target may be hidden by file managers because its partition uses
-the standard EFI System GUID; it can be physically disconnected at that point.
+It can be physically disconnected at that point. Version 0.5.1 creates the
+UEFI/GPT FAT32 volume as Microsoft Basic Data without hidden or no-drive-letter
+attributes so it can be browsed normally after reconnection.
 
 GitHub Actions builds on Debian, Ubuntu, Fedora, and openSUSE, produces `.deb`
 and `.rpm` artifacts, and publishes a reproducible source archive plus release

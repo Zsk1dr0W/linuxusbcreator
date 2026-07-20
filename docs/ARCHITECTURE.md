@@ -33,14 +33,20 @@ Para medios de Windows, la inspección y extracción ISO/UDF y la división WIM 
 ejecutan sin privilegios. El helper conserva únicamente el particionado y
 formato de un USB revalidado mediante un plan cerrado. Véase ADR 0004.
 
-El perfil UEFI crea GPT y una partición EFI FAT32. El perfil BIOS x64 crea una
-tabla DOS, una partición FAT32 activa y registros MBR/PBR NT6. El helper solo
-puede ejecutar esos dos planes cerrados mediante copias root-owned de `sfdisk` y
-`mkfs.fat`; no acepta tablas, tipos, etiquetas, rutas de herramientas ni
-opciones suministradas por el cliente. Al terminar devuelve únicamente el nodo
-de la partición. La aplicación vuelve al usuario activo, monta origen y destino
-mediante UDisks2, copia con `O_NOFOLLOW`, divide WIM si corresponde, sincroniza,
-verifica los SWM con wimlib y compara el resto de los archivos byte a byte.
+El perfil UEFI crea GPT y una partición FAT32 Microsoft Basic Data sin atributos
+de ocultación; conserva el cargador removible en `EFI/BOOT`. Este tipo permite
+que Windows asigne una letra al volumen y que Linux lo exponga como medio de
+datos. El perfil BIOS x64 crea una tabla DOS, una partición FAT32 activa y
+registros MBR/PBR NT6. El helper solo puede ejecutar esos dos planes cerrados
+mediante copias root-owned de `sfdisk` y `mkfs.fat`; no acepta tablas, tipos,
+etiquetas, rutas de herramientas ni opciones suministradas por el cliente. Al
+terminar devuelve únicamente el nodo de la partición. La aplicación vuelve al
+usuario activo, monta origen y destino mediante UDisks2, copia con `O_NOFOLLOW`,
+divide WIM si corresponde, sincroniza, verifica los SWM con wimlib y compara el
+resto de los archivos byte a byte.
+
+La elección del tipo GPT visible y sus puertas de compatibilidad se registran
+en ADR 0005.
 
 ## Proposed source tree
 

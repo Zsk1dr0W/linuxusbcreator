@@ -3,6 +3,8 @@
 
 #include <string.h>
 
+#define GPT_BASIC_DATA_GUID "ebd0a0a2-b9e5-4433-87c0-68b6b72699c7"
+
 const gchar *
 luc_windows_firmware_to_string(LucWindowsFirmware firmware)
 {
@@ -35,7 +37,7 @@ luc_windows_target_sfdisk_plan(LucWindowsFirmware firmware)
            "unit: sectors\n"
            "first-lba: 2048\n"
            "\n"
-           "start=2048, type=c12a7328-f81f-11d2-ba4b-00a0c93ec93b, "
+           "start=2048, type=" GPT_BASIC_DATA_GUID ", "
            "name=\"LINUX USB CREATOR\"\n";
 }
 

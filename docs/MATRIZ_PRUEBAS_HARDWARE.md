@@ -75,3 +75,21 @@ Las imágenes oficiales ARM64 superaron la inspección UDF, la validación de
 documentadas en `MATRIZ_PRUEBAS_WINDOWS.md`. No se dispone de hardware ARM64
 para comprobar el arranque físico; por tanto, 0.5.0 presenta este perfil como
 experimental y no como validado en hardware.
+
+## M4.1 — Medio Windows UEFI/GPT visible
+
+| Fecha | Versión | Dispositivo | Imagen | Resultado previo a reconectar |
+|---|---|---|---|---|
+| 2026-07-20 | 0.5.1, RPM local | Kingston DataTraveler 3.0, serie `E0D55E6B6367172049400134` | Windows 11 25H2 Spanish x64 v2 oficial, 8.469.745.664 bytes | Microsoft Basic Data/FAT32 sin flags, creación, división WIM, sincronización y verificación completas; UDisks2 y GIO lo exponen como volumen visible, legible y escribible |
+
+La tabla GPT usa el tipo
+`EBD0A0A2-B9E5-4433-87C0-68B6B72699C7`, inicia en el sector 2048 y no contiene
+atributos GPT. UDisks2 informó `HintAuto=true`, `HintIgnore=false` y montó el
+volumen para el usuario activo en `/run/media/vdiiazg/LUC-WINDOWS`. Se
+inspeccionaron 1.066 archivos, incluidos `efi/boot/bootx64.efi`, `boot.wim` y
+tres fragmentos SWM. GIO informó `standard::is-hidden: FALSE` y permisos de
+lectura y escritura. Después del desmontaje seguro, `fsck.fat -n` terminó
+limpio con 1.169 entradas y 513.493 de 1.890.787 clústeres usados.
+
+La prueba de visibilidad después de reconectar físicamente y el arranque UEFI
+en hardware real permanecen pendientes.

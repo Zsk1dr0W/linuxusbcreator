@@ -31,7 +31,10 @@ test_fixed_gpt_plan(void)
     g_assert_nonnull(strstr(plan, "label: gpt"));
     g_assert_nonnull(strstr(plan, "first-lba: 2048"));
     g_assert_nonnull(strstr(plan,
+        "type=ebd0a0a2-b9e5-4433-87c0-68b6b72699c7"));
+    g_assert_null(strstr(plan,
         "type=c12a7328-f81f-11d2-ba4b-00a0c93ec93b"));
+    g_assert_null(strstr(plan, "attrs="));
     g_assert_nonnull(strstr(plan, "name=\"LINUX USB CREATOR\""));
 }
 

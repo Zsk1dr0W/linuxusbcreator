@@ -33,6 +33,8 @@
 - El helper acepta solo los perfiles cerrados UEFI/GPT/FAT32 y BIOS/MBR/FAT32,
   herramientas de rutas
   confiables propiedad de root e identidad completa del USB.
+- El plan UEFI fija Microsoft Basic Data y no admite atributos GPT ocultos o de
+  supresión de letra de unidad; el cliente no puede suministrar otro GUID.
 - El montaje de destino y la copia pertenecen al usuario activo; cada archivo
   se abre sin seguir enlaces y se sincroniza antes de verificarlo.
 - Un `install.wim` grande se sustituye por SWM menores de 4 GiB y wimlib valida

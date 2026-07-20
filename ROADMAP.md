@@ -144,13 +144,13 @@ sin bloquear la entrega x64 ni afirmar una certificación inexistente.
 
 ## M4.1 — Visibilidad y compatibilidad del medio Windows UEFI
 
-- [ ] Reproducir y documentar que el perfil UEFI/GPT 0.5.0 crea una partición
+- [x] Reproducir y documentar que el perfil UEFI/GPT 0.5.0 crea una partición
   EFI System que Windows no muestra con letra de unidad y que algunos
   exploradores Linux omiten.
-- [ ] Cambiar el diseño GPT para que la partición FAT32 del medio extraíble sea
+- [x] Cambiar el diseño GPT para que la partición FAT32 del medio extraíble sea
   visible como volumen de datos, previsiblemente mediante el GUID Microsoft
   Basic Data, conservando `EFI/BOOT` y el arranque UEFI removible.
-- [ ] Añadir pruebas unitarias del tipo GPT y sus atributos para evitar que el
+- [x] Añadir pruebas unitarias del tipo GPT y sus atributos para evitar que el
   medio vuelva a quedar marcado como una ESP oculta.
 - [ ] Confirmar que, después del desmontaje seguro y de volver a conectar el
   USB, Windows le asigna una letra y el explorador de archivos permite ver su
@@ -158,12 +158,13 @@ sin bloquear la entrega x64 ni afirmar una certificación inexistente.
 - [ ] Confirmar que, después del desmontaje seguro y de volver a conectar el
   USB, UDisks2 y los exploradores de archivos Linux permiten montarlo y ver su
   contenido.
-- [ ] Repetir la creación, división WIM, sincronización y verificación completa
+- [x] Repetir la creación, división WIM, sincronización y verificación completa
   con una ISO oficial de Windows mayor que el límite FAT32.
 - [ ] Repetir en hardware real la prueba de arranque UEFI/GPT x64 hasta Windows
   Setup con el nuevo tipo de partición.
-- [ ] Comprobar que el perfil BIOS/MBR x64 no presenta regresiones.
-- [ ] Actualizar el diagnóstico final y la documentación para eliminar la
+- [x] Comprobar mediante la suite automatizada que el perfil BIOS/MBR x64, su
+  plan MBR activo y sus registros NT6 no presentan regresiones.
+- [x] Actualizar el diagnóstico final y la documentación para eliminar la
   advertencia de que el medio UEFI puede quedar oculto.
 - [ ] Generar, instalar y probar los paquetes DEB y RPM de Linux USB Creator
   0.5.1, con checksums y firma OpenPGP.

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: linuxusbcreator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-20 15:44-0400\n"
+"POT-Creation-Date: 2026-07-20 17:36-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -277,7 +277,7 @@ msgstr ""
 #: src/app/window.c:525
 msgid ""
 "The UEFI/GPT Windows installation media was created successfully. The USB is "
-"safely unmounted and can be disconnected."
+"safely unmounted and can be disconnected. Reconnect it to browse its files."
 msgstr ""
 
 #: src/app/window.c:528

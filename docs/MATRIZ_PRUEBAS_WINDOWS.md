@@ -102,3 +102,26 @@ en hardware real. Las imágenes ARM64 oficiales superaron la inspección, la
 validación de payloads y las comprobaciones estructurales, pero no se probó su
 arranque por no disponer de hardware ARM64. El perfil UEFI ARM64 de 0.5.0 debe
 considerarse experimental hasta ampliar esta matriz.
+
+## M4.1 — Visibilidad del volumen UEFI/GPT
+
+La prueba posterior a 0.5.0 confirmó que el medio arrancaba y llegaba a Windows
+Setup, pero su partición FAT32 no aparecía en los exploradores de Windows ni de
+Linux. El plan 0.5.0 usaba el GUID EFI System
+`c12a7328-f81f-11d2-ba4b-00a0c93ec93b`; Windows no asigna normalmente una letra
+a ese tipo de partición.
+
+El plan 0.5.1 usa Microsoft Basic Data
+`ebd0a0a2-b9e5-4433-87c0-68b6b72699c7`, sin atributos de ocultación o de
+supresión de letra, y conserva FAT32 y `EFI/BOOT`. Las pruebas automatizadas
+rechazan una regresión al GUID EFI System.
+
+La aplicación 0.5.1 instalada desde un RPM local repitió el flujo completo con
+`Win11_25H2_Spanish_x64_v2.iso`: copió 1.066 archivos, dividió
+`install.wim` en tres SWM, sincronizó, verificó los fragmentos y comparó los
+archivos ordinarios. UDisks2 informó `HintAuto=true`, `HintIgnore=false` y
+montó `/dev/sda1` como el usuario activo. GIO indicó `is-hidden: FALSE` y acceso
+de lectura y escritura; `fsck.fat -n` terminó limpio con 1.169 entradas.
+
+Quedan por registrar la visibilidad después de desconectar y reconectar
+físicamente el USB en Linux y Windows y el nuevo arranque UEFI en hardware.

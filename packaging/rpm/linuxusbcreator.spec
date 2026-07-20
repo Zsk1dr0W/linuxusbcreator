@@ -1,5 +1,5 @@
 Name:           linuxusbcreator
-Version:        0.5.0
+Version:        0.5.1
 Release:        1%{?dist}
 Summary:        Native Linux utility for creating bootable USB media
 License:        GPL-3.0-or-later AND GPL-2.0-or-later
@@ -54,6 +54,10 @@ automatic WIM splitting.
 %{_mandir}/man1/linuxusbcreator.1*
 
 %changelog
+* Mon Jul 20 2026 Víctor Díaz Gonzalez <106137683+Zsk1dr0W@users.noreply.github.com> - 0.5.1-1
+- Make UEFI/GPT Windows media visible in Windows and Linux file managers
+- Keep removable-media UEFI boot files while using a Microsoft Basic Data partition
+
 * Mon Jul 20 2026 Víctor Díaz Gonzalez <106137683+Zsk1dr0W@users.noreply.github.com> - 0.5.0-1
 - Add UEFI/GPT and BIOS/MBR Windows media creation with per-stage progress
 - Prevent UDisks target-mount authorization timeouts
