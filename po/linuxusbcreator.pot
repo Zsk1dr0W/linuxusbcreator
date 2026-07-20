@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: linuxusbcreator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-20 03:31-0400\n"
+"POT-Creation-Date: 2026-07-20 04:22-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,6 +16,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
 #: src/app/main.c:20
 msgid "Usage:"
@@ -53,18 +54,250 @@ msgstr ""
 msgid "Show program version"
 msgstr ""
 
+#: src/app/window.c:38
+msgid "ERASE"
+msgstr ""
+
+#: src/app/window.c:52
+msgid "Available; its partitions will be unmounted before writing"
+msgstr ""
+
+#: src/app/window.c:53
+msgid "Available for writing"
+msgstr ""
+
+#: src/app/window.c:56
+msgid "Blocked: the device does not report a stable serial number"
+msgstr ""
+
+#: src/app/window.c:59
+msgid "Blocked: no media is available"
+msgstr ""
+
+#: src/app/window.c:61
+msgid "Blocked: no block device is available"
+msgstr ""
+
+#: src/app/window.c:63
+msgid "Blocked: this is not a USB device"
+msgstr ""
+
+#: src/app/window.c:65
+msgid "Blocked: the device is not removable"
+msgstr ""
+
 #: src/app/window.c:67
-msgid "No storage devices were reported by UDisks2."
+msgid "Blocked: contains the current operating system"
 msgstr ""
 
-#: src/app/window.c:109
-msgid "Detected storage devices"
+#: src/app/window.c:69
+msgid "Blocked: contains active swap"
 msgstr ""
 
-#: src/app/window.c:111
+#: src/app/window.c:71
+msgid "Blocked: the device is read-only"
+msgstr ""
+
+#: src/app/window.c:73
+msgid "Blocked: unsupported device type"
+msgstr ""
+
+#: src/app/window.c:77
+msgid "Blocked by the safety policy"
+msgstr ""
+
+#: src/app/window.c:93
+msgid "no block node"
+msgstr ""
+
+#: src/app/window.c:138 src/app/window.c:554
+msgid "The image is larger than the selected device."
+msgstr ""
+
+#: src/app/window.c:188
+msgid "UDisks2 did not report any storage devices."
+msgstr ""
+
+#: src/app/window.c:191
+#, c-format
+msgid "%u device detected; %u USB available for writing."
+msgid_plural "%u devices detected; %u USB devices available for writing."
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/app/window.c:249
+msgid "Select a regular local image file."
+msgstr ""
+
+#: src/app/window.c:262
+msgid "Select a USB device and review verification before continuing."
+msgstr ""
+
+#: src/app/window.c:278
+msgid "Select disk image"
+msgstr ""
+
+#: src/app/window.c:281
+msgid "Select"
+msgstr ""
+
+#: src/app/window.c:281 src/app/window.c:521
+msgid "Cancel"
+msgstr ""
+
+#: src/app/window.c:283
+msgid "Disk images (*.iso, *.img, *.raw)"
+msgstr ""
+
+#: src/app/window.c:291
+msgid "All files"
+msgstr ""
+
+#: src/app/window.c:338
+msgid "Computing the image SHA-256…"
+msgstr ""
+
+#: src/app/window.c:344
+msgid "Writing the image to the USB device…"
+msgstr ""
+
+#: src/app/window.c:347
+msgid "Synchronizing data with the device…"
+msgstr ""
+
+#: src/app/window.c:352
+msgid "Verifying the image by reading it back…"
+msgstr ""
+
+#: src/app/window.c:400
+msgid "Completed and verified"
+msgstr ""
+
+#: src/app/window.c:402
+msgid "The image was written and verified successfully."
+msgstr ""
+
+#: src/app/window.c:405
+msgid "Completed"
+msgstr ""
+
+#: src/app/window.c:407
+msgid "The image was written without read-back verification."
+msgstr ""
+
+#: src/app/window.c:411
+msgid "Cancelled"
+msgstr ""
+
+#: src/app/window.c:412
+msgid "The operation was cancelled."
+msgstr ""
+
+#: src/app/window.c:414
+msgid "Failed"
+msgstr ""
+
+#: src/app/window.c:418
+msgid "Writing failed without additional information."
+msgstr ""
+
+#: src/app/window.c:445
+msgid "Waiting for authorization…"
+msgstr ""
+
+#: src/app/window.c:447
+msgid "Authorize the limited Linux USB Creator helper."
+msgstr ""
+
+#: src/app/window.c:484
+msgid "This operation will destroy all data on the USB device"
+msgstr ""
+
+#: src/app/window.c:496
+msgid "Confirm destructive write"
+msgstr ""
+
+#: src/app/window.c:508
+#, c-format
+msgid ""
+"Target: %s (%s, %s)\n"
+"Image: %s"
+msgstr ""
+
+#: src/app/window.c:515
+msgid "Type ERASE to confirm:"
+msgstr ""
+
+#: src/app/window.c:522
+msgid "Erase and write"
+msgstr ""
+
+#: src/app/window.c:548
+msgid "The image no longer exists or is no longer a regular file."
+msgstr ""
+
+#: src/app/window.c:569
+msgid "Cancelling safely…"
+msgstr ""
+
+#: src/app/window.c:641
 msgid "Linux USB Creator"
 msgstr ""
 
-#: src/app/window.c:123
+#: src/app/window.c:650
+msgid "1. Select an image"
+msgstr ""
+
+#: src/app/window.c:656
+msgid "ISO/raw image"
+msgstr ""
+
+#: src/app/window.c:657
+msgid "No image selected"
+msgstr ""
+
+#: src/app/window.c:658
+msgid "Choose…"
+msgstr ""
+
+#: src/app/window.c:663
+msgid "Full verification"
+msgstr ""
+
+#: src/app/window.c:665
+msgid "Read the written image back and compare SHA-256"
+msgstr ""
+
+#: src/app/window.c:674
+msgid "2. Select the target USB device"
+msgstr ""
+
+#: src/app/window.c:675
 msgid "Scanning UDisks2…"
+msgstr ""
+
+#: src/app/window.c:686
+msgid "3. Confirm and write"
+msgstr ""
+
+#: src/app/window.c:687
+msgid ""
+"The system SSD and ineligible devices remain blocked. Writing requires "
+"explicit confirmation and Polkit authorization."
+msgstr ""
+
+#: src/app/window.c:694
+msgid "Ready"
+msgstr ""
+
+#: src/app/window.c:697
+msgid "Choose an image and an available USB device."
+msgstr ""
+
+#: src/app/window.c:702
+msgid "Cancel operation"
+msgstr ""
+
+#: src/app/window.c:704
+msgid "Write image…"
 msgstr ""

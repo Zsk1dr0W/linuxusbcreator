@@ -67,6 +67,30 @@ Cumplido inicialmente con el Kingston DataTraveler documentado en
 Criterio de salida: los paquetes se instalan limpiamente y el MVP funciona sin
 iniciar la interfaz gráfica como root.
 
+## M3.1 — Flujo gráfico de escritura funcional
+
+- [x] Seleccionar imágenes ISO/raw locales y mostrar su nombre y capacidad.
+- [x] Permitir seleccionar únicamente USB escribibles con identidad estable;
+  mantener visibles pero bloqueados el disco del sistema y los dispositivos no
+  elegibles.
+- [x] Desmontar mediante el helper existente y volver a validar serie, capacidad
+  y política inmediatamente antes de escribir.
+- [x] Exigir una confirmación destructiva escrita antes de solicitar Polkit.
+- [x] Mostrar las fases de SHA-256, escritura, `fsync` y verificación con
+  progreso en vivo.
+- [x] Permitir cancelación y evitar cerrar la ventana dejando una escritura
+  privilegiada huérfana.
+- [x] Mantener la verificación completa activada de forma predeterminada y
+  mostrar el resultado o diagnóstico final.
+- [x] Añadir pruebas para candidatos montados, protocolo del helper y fallos al
+  iniciar la operación gráfica.
+- [ ] Validar el flujo gráfico completo con el Kingston DataTraveler de la
+  matriz de hardware.
+
+Criterio de salida: una persona puede completar una escritura raw verificada
+desde la interfaz sin ejecutar la aplicación como root y sin poder seleccionar
+el disco del sistema.
+
 ## M4 — Medios de instalación de Windows
 
 - [ ] Inspeccionar sistemas de archivos ISO9660/UDF.

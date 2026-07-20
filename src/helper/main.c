@@ -36,6 +36,29 @@ print_progress(goffset completed, goffset total, gpointer user_data)
     fflush(stdout);
 }
 
+static void
+print_phase(LucImagePhase phase, gpointer user_data)
+{
+    const gchar *name;
+
+    (void)user_data;
+    switch (phase) {
+    case LUC_IMAGE_PHASE_WRITING:
+        name = "writing";
+        break;
+    case LUC_IMAGE_PHASE_SYNCING:
+        name = "syncing";
+        break;
+    case LUC_IMAGE_PHASE_VERIFYING:
+        name = "verifying";
+        break;
+    default:
+        return;
+    }
+    g_print("{\"event\":\"phase\",\"name\":\"%s\"}\n", name);
+    fflush(stdout);
+}
+
 static gboolean
 is_whole_block_device(const gchar *device_path, GError **error)
 {
@@ -102,14 +125,16 @@ run_write(const gchar *image_path,
                                           TRUE, &error))
         goto failed;
 
+    g_print("{\"event\":\"phase\",\"name\":\"hashing\"}\n");
+    fflush(stdout);
     digest = luc_image_sha256(image_path, operation_cancellable, &error);
     if (digest == NULL)
         goto failed;
     luc_operation_log_append(OPERATION_LOG, "raw-write", "started", image_path,
                              device_path, image_stat.st_size, digest, NULL);
     success = luc_image_write_block_device(image_path, device_path, verify,
-                                           operation_cancellable, print_progress,
-                                           NULL, &error);
+                                           operation_cancellable, print_phase,
+                                           print_progress, NULL, &error);
     luc_operation_log_append(OPERATION_LOG, "raw-write",
                              success ? "completed" : "failed",
                              image_path, device_path, image_stat.st_size, digest, NULL);

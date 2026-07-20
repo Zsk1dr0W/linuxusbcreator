@@ -56,6 +56,17 @@ test_mounted_device_is_rejected(void)
 }
 
 static void
+test_mounted_device_is_write_candidate(void)
+{
+    g_autoptr(LucDevice) device = eligible_device();
+    device->serial = g_strdup("SERIAL-1");
+    device->mounted = TRUE;
+    g_assert_true(luc_device_is_write_candidate(device));
+    device->read_only = TRUE;
+    g_assert_false(luc_device_is_write_candidate(device));
+}
+
+static void
 test_swap_precedes_mount_rejection(void)
 {
     g_autoptr(LucDevice) device = eligible_device();
@@ -141,6 +152,7 @@ main(int argc, char **argv)
     g_test_add_func("/device/reject-non-usb", test_non_usb_is_rejected);
     g_test_add_func("/device/reject-fixed-usb", test_fixed_usb_is_rejected);
     g_test_add_func("/device/reject-mounted", test_mounted_device_is_rejected);
+    g_test_add_func("/device/write-candidate-mounted", test_mounted_device_is_write_candidate);
     g_test_add_func("/device/reject-active-swap", test_swap_precedes_mount_rejection);
     g_test_add_func("/device/reject-no-media", test_empty_media_is_rejected_first);
     g_test_add_func("/device/copy", test_copy_is_independent);

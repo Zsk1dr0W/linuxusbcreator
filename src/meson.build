@@ -1,4 +1,9 @@
-core_sources = files('core/device.c', 'core/image-writer.c', 'core/operation-log.c')
+core_sources = files(
+  'core/device.c',
+  'core/helper-protocol.c',
+  'core/image-writer.c',
+  'core/operation-log.c',
+)
 linux_sources = files('linux/device-monitor.c')
 
 core_lib = static_library(
@@ -14,11 +19,24 @@ core_dep = declare_dependency(
   dependencies: [glib_dep, gio_dep],
 )
 
+write_operation_lib = static_library(
+  'linuxusbcreator-write-operation',
+  files('app/write-operation.c'),
+  include_directories: include_directories('.', '..'),
+  dependencies: [core_dep, gio_dep],
+)
+
+write_operation_dep = declare_dependency(
+  link_with: write_operation_lib,
+  include_directories: include_directories('.'),
+  dependencies: [core_dep, gio_dep],
+)
+
 app_exe = executable(
   'linuxusbcreator',
   files('app/main.c', 'app/window.c') + linux_sources,
   include_directories: include_directories('.', '..'),
-  dependencies: [core_dep, gio_dep, gtk_dep, adw_dep],
+  dependencies: [core_dep, write_operation_dep, gio_dep, gtk_dep, adw_dep],
   install: true,
 )
 

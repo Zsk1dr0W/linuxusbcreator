@@ -7,7 +7,9 @@
   <vendor_url>https://github.com/Zsk1dr0W/linuxusbcreator</vendor_url>
   <action id="io.github.zsk1dr0w.LinuxUsbCreator.write-image">
     <description>Write an image to a removable USB device</description>
+    <description xml:lang="es">Escribir una imagen en un dispositivo USB extraíble</description>
     <message>Authentication is required to overwrite a removable USB device</message>
+    <message xml:lang="es">Se requiere autenticación para sobrescribir un dispositivo USB extraíble</message>
     <defaults>
       <allow_any>no</allow_any>
       <allow_inactive>no</allow_inactive>

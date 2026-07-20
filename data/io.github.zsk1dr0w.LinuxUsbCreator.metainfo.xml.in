@@ -10,7 +10,7 @@
   <description>
     <p>
       Linux USB Creator is a native Linux utility for inspecting removable USB
-      storage and, in future releases, creating verified bootable media.
+      storage and creating verified bootable media from raw/hybrid images.
     </p>
     <p>
       Version 0.2 adds conservative, Polkit-authorized raw image writing with
@@ -25,6 +25,11 @@
   </developer>
   <content_rating type="oars-1.1" />
   <releases>
+    <release version="0.4.0" date="2026-07-20">
+      <description>
+        <p>Functional graphical writer with confirmation, progress and cancellation.</p>
+      </description>
+    </release>
     <release version="0.3.1" date="2026-07-20">
       <description>
         <p>Document all command-line modes in the built-in help.</p>

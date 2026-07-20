@@ -1,6 +1,6 @@
 # Linux USB Creator
 
-Linux USB Creator is a planned native Linux utility for safely creating
+Linux USB Creator is a native Linux utility for safely creating
 bootable USB media from Linux and Windows disk images.
 
 The project is inspired by the workflow and reliability goals of Rufus, but it
@@ -9,12 +9,12 @@ not affiliated with the Rufus project.
 
 ## Project status
 
-Milestone M3 packages the read-only discovery and Polkit-authorized raw image
-writer as the first distributable release. It includes full read-back
-verification, Spanish localization, desktop/AppStream metadata, a manual page,
-reproducible source archives, and install-tested `.deb` and `.rpm` artifacts.
-The write workflow is currently available through the command line while the
-GTK writing UI is developed. See
+Milestone M3.1 provides a functional GTK writing workflow on top of the
+Polkit-authorized raw image writer. It includes conservative USB selection,
+destructive confirmation, live phase/progress reporting, cancellation, full
+read-back verification, Spanish localization, desktop/AppStream metadata, a
+manual page, reproducible source archives, and install-tested `.deb` and `.rpm`
+artifacts. See
 [ROADMAP.md](ROADMAP.md) for the implementation plan and
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the proposed design.
 

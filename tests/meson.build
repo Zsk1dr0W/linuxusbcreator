@@ -22,6 +22,22 @@ operation_log_test = executable(
 )
 test('operation-log', operation_log_test)
 
+helper_protocol_test = executable(
+  'test-helper-protocol',
+  files('unit/test-helper-protocol.c'),
+  include_directories: include_directories('../src'),
+  dependencies: [core_dep],
+)
+test('helper-protocol', helper_protocol_test)
+
+write_operation_test = executable(
+  'test-write-operation',
+  files('unit/test-write-operation.c'),
+  include_directories: include_directories('../src'),
+  dependencies: [write_operation_dep],
+)
+test('write-operation', write_operation_test)
+
 test('helper-rejects-invalid-invocation', helper_exe, should_fail: true)
 
 cli_help_test = find_program('integration/test-cli-help.sh')

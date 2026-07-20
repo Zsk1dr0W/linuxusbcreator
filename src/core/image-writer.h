@@ -9,6 +9,14 @@ typedef void (*LucImageProgressFunc)(goffset completed,
                                      goffset total,
                                      gpointer user_data);
 
+typedef enum {
+    LUC_IMAGE_PHASE_WRITING,
+    LUC_IMAGE_PHASE_SYNCING,
+    LUC_IMAGE_PHASE_VERIFYING,
+} LucImagePhase;
+
+typedef void (*LucImagePhaseFunc)(LucImagePhase phase, gpointer user_data);
+
 /* Low-level primitive exposed so failure and short-write behaviour can be
  * tested without a real block device. */
 gboolean luc_image_write_all_fd(int fd,
@@ -34,6 +42,7 @@ gboolean luc_image_write_block_device(const gchar *source_path,
                                       const gchar *device_path,
                                       gboolean verify,
                                       GCancellable *cancellable,
+                                      LucImagePhaseFunc phase_changed,
                                       LucImageProgressFunc progress,
                                       gpointer user_data,
                                       GError **error);

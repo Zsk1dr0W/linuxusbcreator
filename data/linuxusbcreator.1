@@ -1,4 +1,4 @@
-.TH LINUXUSBCREATOR 1 "July 2026" "Linux USB Creator 0.3.1" "User Commands"
+.TH LINUXUSBCREATOR 1 "July 2026" "Linux USB Creator 0.4.0" "User Commands"
 .SH NAME
 linuxusbcreator \- inspect USB devices and write verified raw images
 .SH SYNOPSIS
@@ -16,6 +16,10 @@ linuxusbcreator \- inspect USB devices and write verified raw images
 Linux USB Creator discovers removable storage through UDisks2. Raw image writes
 are performed by a short-lived Polkit helper; the graphical process is never
 run as root.
+.PP
+When started without options, the graphical interface selects a local ISO/raw
+image and an eligible USB target, requires destructive confirmation, and shows
+write and read-back verification progress.
 .SH OPTIONS
 .TP
 .B --diagnose

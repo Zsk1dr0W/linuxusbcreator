@@ -43,6 +43,7 @@ LucDevice *luc_device_copy(const LucDevice *device);
 void luc_device_free(LucDevice *device);
 
 LucDeviceEligibility luc_device_get_eligibility(const LucDevice *device);
+gboolean luc_device_is_write_candidate(const LucDevice *device);
 const gchar *luc_device_eligibility_to_string(LucDeviceEligibility eligibility);
 gchar *luc_device_get_display_name(const LucDevice *device);
 gboolean luc_device_validate_confirmation(const LucDevice *device,

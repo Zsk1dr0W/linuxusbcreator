@@ -62,6 +62,8 @@ static gboolean
 hash_fd_prefix(int fd,
                guint64 length,
                GCancellable *cancellable,
+               LucImageProgressFunc progress,
+               gpointer user_data,
                gchar **digest,
                GError **error)
 {
@@ -74,6 +76,8 @@ hash_fd_prefix(int fd,
                     "Unable to seek for verification: %s", g_strerror(errno));
         return FALSE;
     }
+    if (progress != NULL)
+        progress(0, (goffset)length, user_data);
     while (completed < length) {
         gsize requested = (gsize)MIN((guint64)LUC_COPY_BUFFER_SIZE, length - completed);
         gsize received = 0;
@@ -87,6 +91,8 @@ hash_fd_prefix(int fd,
         }
         g_checksum_update(checksum, buffer, received);
         completed += received;
+        if (progress != NULL)
+            progress((goffset)completed, (goffset)length, user_data);
     }
     *digest = g_strdup(g_checksum_get_string(checksum));
     return TRUE;
@@ -226,6 +232,7 @@ luc_image_write_block_device(const gchar *source_path,
                              const gchar *device_path,
                              gboolean verify,
                              GCancellable *cancellable,
+                             LucImagePhaseFunc phase_changed,
                              LucImageProgressFunc progress,
                              gpointer user_data,
                              GError **error)
@@ -267,6 +274,8 @@ luc_image_write_block_device(const gchar *source_path,
                             "Image is larger than the destination device");
         goto cleanup;
     }
+    if (phase_changed != NULL)
+        phase_changed(LUC_IMAGE_PHASE_WRITING, user_data);
     if (progress != NULL)
         progress(0, source_metadata.st_size, user_data);
     while (completed < (guint64)source_metadata.st_size) {
@@ -287,6 +296,8 @@ luc_image_write_block_device(const gchar *source_path,
         if (progress != NULL)
             progress(completed, source_metadata.st_size, user_data);
     }
+    if (phase_changed != NULL)
+        phase_changed(LUC_IMAGE_PHASE_SYNCING, user_data);
     if (fsync(device_fd) != 0) {
         g_set_error(error, G_IO_ERROR, g_io_error_from_errno(errno),
                     "Unable to flush device: %s", g_strerror(errno));
@@ -296,6 +307,8 @@ luc_image_write_block_device(const gchar *source_path,
     device_fd = -1;
 
     if (verify) {
+        if (phase_changed != NULL)
+            phase_changed(LUC_IMAGE_PHASE_VERIFYING, user_data);
         source_digest = luc_image_sha256(source_path, cancellable, error);
         if (source_digest == NULL)
             goto cleanup;
@@ -306,7 +319,7 @@ luc_image_write_block_device(const gchar *source_path,
             goto cleanup;
         }
         if (!hash_fd_prefix(device_fd, source_metadata.st_size, cancellable,
-                            &device_digest, error))
+                            progress, user_data, &device_digest, error))
             goto cleanup;
         if (!g_str_equal(source_digest, device_digest)) {
             g_set_error_literal(error, G_IO_ERROR, G_IO_ERROR_FAILED,

@@ -68,6 +68,19 @@ luc_device_get_eligibility(const LucDevice *device)
     return LUC_DEVICE_ELIGIBLE;
 }
 
+gboolean
+luc_device_is_write_candidate(const LucDevice *device)
+{
+    g_autoptr(LucDevice) unmounted = NULL;
+
+    g_return_val_if_fail(device != NULL, FALSE);
+    if (device->serial == NULL || device->serial[0] == '\0')
+        return FALSE;
+    unmounted = luc_device_copy(device);
+    unmounted->mounted = FALSE;
+    return luc_device_get_eligibility(unmounted) == LUC_DEVICE_ELIGIBLE;
+}
+
 const gchar *
 luc_device_eligibility_to_string(LucDeviceEligibility eligibility)
 {
