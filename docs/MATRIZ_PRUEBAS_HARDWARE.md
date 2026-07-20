@@ -93,3 +93,7 @@ limpio con 1.169 entradas y 513.493 de 1.890.787 clústeres usados.
 
 La prueba de visibilidad después de reconectar físicamente y el arranque UEFI
 en hardware real permanecen pendientes.
+
+El CI `29782579640` compiló y probó 0.5.1 en Debian, Ubuntu, Fedora y openSUSE;
+construyó, instaló y eliminó los paquetes DEB/RPM, generó el tarball reproducible
+y produjo el manifiesto SHA-256 con firma OpenPGP válida.

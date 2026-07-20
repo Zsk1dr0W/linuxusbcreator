@@ -166,7 +166,7 @@ sin bloquear la entrega x64 ni afirmar una certificación inexistente.
   plan MBR activo y sus registros NT6 no presentan regresiones.
 - [x] Actualizar el diagnóstico final y la documentación para eliminar la
   advertencia de que el medio UEFI puede quedar oculto.
-- [ ] Generar, instalar y probar los paquetes DEB y RPM de Linux USB Creator
+- [x] Generar, instalar y probar los paquetes DEB y RPM de Linux USB Creator
   0.5.1, con checksums y firma OpenPGP.
 
 Criterio de salida: un medio Windows UEFI/GPT creado por Linux USB Creator
