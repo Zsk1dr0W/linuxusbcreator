@@ -59,8 +59,8 @@ Cumplido inicialmente con el Kingston DataTraveler documentado en
   página de manual.
 - [x] Generar un tarball de fuentes reproducible.
 - [x] Configurar CI para producir artefactos `.deb` y `.rpm`.
-- [ ] Probar instalación y eliminación de paquetes en Debian, Ubuntu, Fedora y
-  openSUSE.
+- [x] Probar instalación y eliminación en Debian, Ubuntu, Fedora y openSUSE;
+  instalar y eliminar además los paquetes DEB y RPM generados por CI.
 - [x] Publicar checksums de lanzamiento y el modelo de amenazas.
 - [ ] Configurar la clave OpenPGP de release y publicar checksums firmados.
 

@@ -114,6 +114,8 @@ jobs:
           DESTDIR="$PWD/stage" meson install -C _build
           test -x stage/usr/bin/linuxusbcreator
           test -x stage/usr/libexec/linuxusbcreator-helper
+          DESTDIR="$PWD/stage" ninja -C _build uninstall
+          test ! -e stage/usr/bin/linuxusbcreator
 
   build-opensuse:
     runs-on: ubuntu-24.04
