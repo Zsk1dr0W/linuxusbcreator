@@ -36,7 +36,7 @@ siguen siendo una mejora pendiente para robustecer la cobertura del monitor.
 
 ## M2 — Escritor de imágenes raw/híbridas (MVP)
 
-- [ ] Inspeccionar imágenes y calcular SHA-256.
+- [x] Inspeccionar imágenes y calcular SHA-256 para imágenes regulares.
 - [ ] Obtener autorización mediante un helper Polkit de alcance limitado.
 - [ ] Desmontar particiones objetivo y volver a validar la identidad del
   dispositivo.

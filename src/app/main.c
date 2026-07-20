@@ -5,6 +5,7 @@
 #include <stdio.h>
 
 #include "app/window.h"
+#include "core/image-writer.h"
 #include "linux/device-monitor.h"
 
 #define APPLICATION_ID "io.github.zsk1dr0w.LinuxUsbCreator"
@@ -34,6 +35,20 @@ json_escape(const gchar *value)
         }
     }
     return g_string_free(escaped, FALSE);
+}
+
+static int
+run_sha256(const gchar *path)
+{
+    g_autoptr(GError) error = NULL;
+    g_autofree gchar *digest = luc_image_sha256(path, NULL, &error);
+
+    if (digest == NULL) {
+        g_printerr("Unable to compute SHA-256: %s\n", error->message);
+        return 2;
+    }
+    g_print("%s  %s\n", digest, path);
+    return 0;
 }
 
 static int
@@ -92,6 +107,8 @@ main(int argc, char **argv)
 
     if (argc == 2 && g_str_equal(argv[1], "--diagnose"))
         return run_diagnostics();
+    if (argc == 3 && g_str_equal(argv[1], "--sha256"))
+        return run_sha256(argv[2]);
     if (argc == 2 && (g_str_equal(argv[1], "--version") || g_str_equal(argv[1], "-V"))) {
         g_print("linuxusbcreator %s\n", PROJECT_VERSION);
         return 0;
@@ -109,4 +126,3 @@ main(int argc, char **argv)
     g_clear_object(&monitor);
     return status;
 }
-

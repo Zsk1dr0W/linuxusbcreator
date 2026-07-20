@@ -68,6 +68,12 @@ For a read-only JSON diagnostic:
 ./_build/src/linuxusbcreator --diagnose
 ```
 
+For a local image checksum (the command only reads the image):
+
+```sh
+./_build/src/linuxusbcreator --sha256 /path/to/image.iso
+```
+
 GitHub Actions builds on Ubuntu and Fedora and produces `.deb` and `.rpm`
 artifacts. Packaging details are in [packaging/README.md](packaging/README.md).
 
