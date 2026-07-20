@@ -8,6 +8,8 @@
 #define UDISKS_PATH "/org/freedesktop/UDisks2"
 #define UDISKS_BLOCK "org.freedesktop.UDisks2.Block"
 #define UDISKS_FILESYSTEM "org.freedesktop.UDisks2.Filesystem"
+#define UDISKS_DISCOVERY_ATTEMPTS 600
+#define UDISKS_CALL_TIMEOUT_MS 120000
 
 struct _LucFilesystemMount {
     GDBusObjectManager *manager;
@@ -70,7 +72,7 @@ wait_for_filesystem(GDBusObjectManager *manager,
                     GCancellable *cancellable,
                     GError **error)
 {
-    for (guint attempt = 0; attempt < 300; attempt++) {
+    for (guint attempt = 0; attempt < UDISKS_DISCOVERY_ATTEMPTS; attempt++) {
         g_autolist(GDBusObject) objects =
             g_dbus_object_manager_get_objects(manager);
 
@@ -84,12 +86,18 @@ wait_for_filesystem(GDBusObjectManager *manager,
             g_autoptr(GDBusInterface) block =
                 g_dbus_object_get_interface(object, UDISKS_BLOCK);
             g_autoptr(GDBusInterface) filesystem = NULL;
+            g_autoptr(GVariant) id_type = NULL;
             g_autofree gchar *device = NULL;
 
             if (block == NULL)
                 continue;
             device = property_bytestring(block, "Device");
             if (g_strcmp0(device, device_path) != 0)
+                continue;
+            id_type = proxy_property(block, "IdType");
+            if (id_type == NULL ||
+                !g_variant_is_of_type(id_type, G_VARIANT_TYPE_STRING) ||
+                !g_str_equal(g_variant_get_string(id_type, NULL), "vfat"))
                 continue;
             filesystem = g_dbus_object_get_interface(object, UDISKS_FILESYSTEM);
             if (G_IS_DBUS_PROXY(filesystem))
@@ -133,11 +141,21 @@ luc_filesystem_mount_open(const gchar *device_path,
     mount->mount_path = first_mount_point(G_DBUS_INTERFACE(mount->filesystem));
     if (mount->mount_path == NULL) {
         g_variant_builder_init(&options, G_VARIANT_TYPE_VARDICT);
+        g_variant_builder_add(&options, "{sv}", "auth.no_user_interaction",
+                              g_variant_new_boolean(TRUE));
         reply = g_dbus_proxy_call_sync(
             mount->filesystem, "Mount", g_variant_new("(a{sv})", &options),
-            G_DBUS_CALL_FLAGS_NONE, -1, cancellable, error);
-        if (reply == NULL)
+            G_DBUS_CALL_FLAGS_NONE, UDISKS_CALL_TIMEOUT_MS, cancellable, error);
+        if (reply == NULL) {
+            if (error != NULL && *error != NULL &&
+                (g_error_matches(*error, G_IO_ERROR, G_IO_ERROR_TIMED_OUT) ||
+                 g_error_matches(*error, G_DBUS_ERROR, G_DBUS_ERROR_TIMEOUT) ||
+                 g_error_matches(*error, G_DBUS_ERROR, G_DBUS_ERROR_NO_REPLY))) {
+                g_prefix_error(error,
+                    "UDisks2 did not mount the freshly formatted Windows target within 120 seconds: ");
+            }
             return NULL;
+        }
         g_variant_get(reply, "(&s)", &path);
         mount->mount_path = g_strdup(path);
     }
@@ -169,9 +187,11 @@ luc_filesystem_mount_close(LucFilesystemMount *mount,
     if (mount->closed)
         return TRUE;
     g_variant_builder_init(&options, G_VARIANT_TYPE_VARDICT);
+    g_variant_builder_add(&options, "{sv}", "auth.no_user_interaction",
+                          g_variant_new_boolean(TRUE));
     reply = g_dbus_proxy_call_sync(
         mount->filesystem, "Unmount", g_variant_new("(a{sv})", &options),
-        G_DBUS_CALL_FLAGS_NONE, -1, cancellable, error);
+        G_DBUS_CALL_FLAGS_NONE, UDISKS_CALL_TIMEOUT_MS, cancellable, error);
     if (reply == NULL)
         return FALSE;
     mount->closed = TRUE;
