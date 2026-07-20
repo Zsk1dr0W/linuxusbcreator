@@ -14,6 +14,24 @@
 
 static LucDeviceMonitor *monitor;
 
+static void
+print_help(const gchar *program)
+{
+    g_print("%s\n", _("Usage:"));
+    g_print("  %s [OPTION…]\n", program);
+    g_print("  %s --diagnose\n", program);
+    g_print("  %s --sha256 IMAGE\n", program);
+    g_print("  %s --write-image IMAGE DEVICE SERIAL SIZE [--no-verify]\n\n", program);
+    g_print("%s\n", _("Commands:"));
+    g_print("  %-45s %s\n", "--diagnose", _("Print detected devices and eligibility as JSON"));
+    g_print("  %-45s %s\n", "--sha256 IMAGE", _("Compute SHA-256 for a regular image file"));
+    g_print("  %-45s %s\n", "--write-image IMAGE DEVICE SERIAL SIZE", _("Write and verify an image on a confirmed USB device"));
+    g_print("  %-45s %s\n\n", "--no-verify", _("Skip read-back verification (not recommended)"));
+    g_print("%s\n", _("Options:"));
+    g_print("  %-45s %s\n", "-h, --help", _("Show this help"));
+    g_print("  %-45s %s\n", "-V, --version", _("Show program version"));
+}
+
 static gchar *
 json_escape(const gchar *value)
 {
@@ -137,6 +155,12 @@ main(int argc, char **argv)
     bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
     textdomain(GETTEXT_PACKAGE);
 
+    if (argc == 2 && (g_str_equal(argv[1], "--help") ||
+                      g_str_equal(argv[1], "-h") ||
+                      g_str_equal(argv[1], "--help-all"))) {
+        print_help(argv[0]);
+        return 0;
+    }
     if (argc == 2 && g_str_equal(argv[1], "--diagnose"))
         return run_diagnostics();
     if (argc == 3 && g_str_equal(argv[1], "--sha256"))

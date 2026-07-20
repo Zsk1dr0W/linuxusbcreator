@@ -1,3 +1,9 @@
+linuxusbcreator (0.3.1-1) unstable; urgency=medium
+
+  * Show all supported command-line modes in --help.
+
+ -- Víctor Díaz Gonzalez <106137683+Zsk1dr0W@users.noreply.github.com>  Mon, 20 Jul 2026 04:30:00 -0400
+
 linuxusbcreator (0.3.0-1) unstable; urgency=medium
 
   * Add localization, manual, reproducible sources and package smoke tests.

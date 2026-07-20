@@ -25,6 +25,11 @@
   </developer>
   <content_rating type="oars-1.1" />
   <releases>
+    <release version="0.3.1" date="2026-07-20">
+      <description>
+        <p>Document all command-line modes in the built-in help.</p>
+      </description>
+    </release>
     <release version="0.3.0" date="2026-07-20">
       <description>
         <p>First distributable release with localization and native packages.</p>

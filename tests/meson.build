@@ -23,3 +23,6 @@ operation_log_test = executable(
 test('operation-log', operation_log_test)
 
 test('helper-rejects-invalid-invocation', helper_exe, should_fail: true)
+
+cli_help_test = find_program('integration/test-cli-help.sh')
+test('cli-help', cli_help_test, args: app_exe.full_path())

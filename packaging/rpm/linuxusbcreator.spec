@@ -1,5 +1,5 @@
 Name:           linuxusbcreator
-Version:        0.3.0
+Version:        0.3.1
 Release:        1%{?dist}
 Summary:        Native Linux utility for creating bootable USB media
 License:        GPL-3.0-or-later
@@ -47,6 +47,9 @@ devices and writing bootable raw images with complete read-back verification.
 %{_mandir}/man1/linuxusbcreator.1*
 
 %changelog
+* Mon Jul 20 2026 Víctor Díaz Gonzalez <106137683+Zsk1dr0W@users.noreply.github.com> - 0.3.1-1
+- Show all supported command-line modes in --help
+
 * Mon Jul 20 2026 Víctor Díaz Gonzalez <106137683+Zsk1dr0W@users.noreply.github.com> - 0.3.0-1
 - Add localization, manual, reproducible sources and package smoke tests
 
