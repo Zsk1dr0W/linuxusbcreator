@@ -63,7 +63,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install packaging dependencies
-        run: dnf install --assumeyes gcc git meson rpm-build glib2-devel gtk4-devel libadwaita-devel desktop-file-utils libappstream-glib
+        run: dnf install --assumeyes gcc git meson rpm-build xz glib2-devel gtk4-devel libadwaita-devel desktop-file-utils libappstream-glib
       - name: Create source archive
         run: |
           mkdir -p rpmbuild/BUILD rpmbuild/BUILDROOT rpmbuild/RPMS rpmbuild/SOURCES rpmbuild/SPECS rpmbuild/SRPMS
@@ -78,4 +78,3 @@ jobs:
             rpmbuild/RPMS/**/*.rpm
             rpmbuild/SRPMS/*.rpm
           if-no-files-found: error
-
