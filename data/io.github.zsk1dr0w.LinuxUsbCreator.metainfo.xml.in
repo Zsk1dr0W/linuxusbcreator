@@ -2,7 +2,9 @@
 <component type="desktop-application">
   <id>io.github.zsk1dr0w.LinuxUsbCreator</id>
   <name>Linux USB Creator</name>
+  <name xml:lang="es">Creador de USB Linux</name>
   <summary>Safely create bootable USB media</summary>
+  <summary xml:lang="es">Crea medios USB de arranque de forma segura</summary>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>GPL-3.0-or-later</project_license>
   <description>
@@ -23,6 +25,11 @@
   </developer>
   <content_rating type="oars-1.1" />
   <releases>
+    <release version="0.3.0" date="2026-07-20">
+      <description>
+        <p>First distributable release with localization and native packages.</p>
+      </description>
+    </release>
     <release version="0.2.0" date="2026-07-20">
       <description>
         <p>Raw image writer MVP with Polkit, UDisks2 and verification.</p>

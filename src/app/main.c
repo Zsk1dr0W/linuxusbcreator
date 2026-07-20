@@ -2,6 +2,8 @@
 #include "config.h"
 
 #include <adwaita.h>
+#include <glib/gi18n.h>
+#include <locale.h>
 #include <stdio.h>
 
 #include "app/window.h"
@@ -129,6 +131,11 @@ main(int argc, char **argv)
     g_autoptr(GError) error = NULL;
     g_autoptr(AdwApplication) application = NULL;
     int status;
+
+    setlocale(LC_ALL, "");
+    bindtextdomain(GETTEXT_PACKAGE, LOCALEDIR);
+    bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
+    textdomain(GETTEXT_PACKAGE);
 
     if (argc == 2 && g_str_equal(argv[1], "--diagnose"))
         return run_diagnostics();

@@ -17,7 +17,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install --yes gcc meson ninja-build libglib2.0-dev libgtk-4-dev libadwaita-1-dev desktop-file-utils appstream-util
+          sudo apt-get install --yes gcc gettext meson ninja-build libglib2.0-dev libgtk-4-dev libadwaita-1-dev desktop-file-utils appstream-util
       - name: Configure
         run: meson setup _build -Db_sanitize=address,undefined
       - name: Build
@@ -31,7 +31,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install dependencies
-        run: dnf install --assumeyes gcc meson ninja-build glib2-devel gtk4-devel libadwaita-devel desktop-file-utils libappstream-glib
+        run: dnf install --assumeyes gcc gettext meson ninja-build glib2-devel gtk4-devel libadwaita-devel desktop-file-utils libappstream-glib
       - name: Configure
         run: meson setup _build
       - name: Build
@@ -46,7 +46,7 @@ jobs:
       - name: Install packaging dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install --yes build-essential debhelper meson libglib2.0-dev libgtk-4-dev libadwaita-1-dev
+          sudo apt-get install --yes build-essential debhelper gettext meson libglib2.0-dev libgtk-4-dev libadwaita-1-dev
       - name: Stage Debian metadata
         run: cp -a packaging/debian debian
       - name: Build DEB
@@ -55,6 +55,13 @@ jobs:
         run: |
           mkdir -p dist
           cp ../*.deb dist/
+      - name: Install and remove DEB
+        run: |
+          sudo apt-get install --yes ./dist/linuxusbcreator_*.deb
+          linuxusbcreator --version
+          test -x /usr/libexec/linuxusbcreator-helper
+          test -f /usr/share/man/man1/linuxusbcreator.1.gz
+          sudo apt-get remove --yes linuxusbcreator
       - uses: actions/upload-artifact@v4
         with:
           name: deb-packages
@@ -67,14 +74,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install packaging dependencies
-        run: dnf install --assumeyes gcc git meson rpm-build xz glib2-devel gtk4-devel libadwaita-devel desktop-file-utils libappstream-glib
+        run: dnf install --assumeyes gcc gettext git meson rpm-build xz glib2-devel gtk4-devel libadwaita-devel desktop-file-utils libappstream-glib
       - name: Create source archive
         run: |
           mkdir -p rpmbuild/BUILD rpmbuild/BUILDROOT rpmbuild/RPMS rpmbuild/SOURCES rpmbuild/SPECS rpmbuild/SRPMS
-          tar --exclude=.git --exclude=rpmbuild --transform='s,^,linuxusbcreator-0.2.0/,' -cJf rpmbuild/SOURCES/linuxusbcreator-0.2.0.tar.xz .
+          tar --exclude=.git --exclude=rpmbuild --transform='s,^,linuxusbcreator-0.3.0/,' -cJf rpmbuild/SOURCES/linuxusbcreator-0.3.0.tar.xz .
           cp packaging/rpm/linuxusbcreator.spec rpmbuild/SPECS/
       - name: Build RPM
         run: rpmbuild --define "_topdir $GITHUB_WORKSPACE/rpmbuild" -ba rpmbuild/SPECS/linuxusbcreator.spec
+      - name: Install and remove RPM
+        run: |
+          dnf install --assumeyes rpmbuild/RPMS/x86_64/linuxusbcreator-0.3.0-1.fc42.x86_64.rpm
+          linuxusbcreator --version
+          test -x /usr/libexec/linuxusbcreator-helper
+          rpm -q linuxusbcreator
+          dnf remove --assumeyes linuxusbcreator
       - uses: actions/upload-artifact@v4
         with:
           name: rpm-packages
@@ -82,3 +96,87 @@ jobs:
             rpmbuild/RPMS/**/*.rpm
             rpmbuild/SRPMS/*.rpm
           if-no-files-found: error
+
+  build-debian:
+    runs-on: ubuntu-24.04
+    container: debian:13
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          apt-get update
+          apt-get install --yes gcc gettext meson ninja-build libglib2.0-dev libgtk-4-dev libadwaita-1-dev desktop-file-utils appstream-util
+      - name: Build and test staged installation
+        run: |
+          meson setup _build --prefix=/usr
+          meson compile -C _build
+          meson test -C _build --print-errorlogs
+          DESTDIR="$PWD/stage" meson install -C _build
+          test -x stage/usr/bin/linuxusbcreator
+          test -x stage/usr/libexec/linuxusbcreator-helper
+
+  build-opensuse:
+    runs-on: ubuntu-24.04
+    container: opensuse/tumbleweed:latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: zypper --non-interactive install gcc gettext-tools meson ninja glib2-devel gtk4-devel libadwaita-devel desktop-file-utils AppStream
+      - name: Build, install and uninstall
+        run: |
+          meson setup _build --prefix=/usr
+          meson compile -C _build
+          meson test -C _build --print-errorlogs
+          DESTDIR="$PWD/stage" meson install -C _build
+          test -x stage/usr/bin/linuxusbcreator
+          test -x stage/usr/libexec/linuxusbcreator-helper
+          DESTDIR="$PWD/stage" ninja -C _build uninstall
+          test ! -e stage/usr/bin/linuxusbcreator
+
+  source-dist:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Build reproducible source archive
+        run: |
+          ./scripts/create-source-tarball.sh 0.3.0 dist-a
+          ./scripts/create-source-tarball.sh 0.3.0 dist-b
+          cmp dist-a/linuxusbcreator-0.3.0.tar.xz dist-b/linuxusbcreator-0.3.0.tar.xz
+      - uses: actions/upload-artifact@v4
+        with:
+          name: source-dist
+          path: |
+            dist-a/linuxusbcreator-0.3.0.tar.xz
+            dist-a/linuxusbcreator-0.3.0.tar.xz.sha256
+          if-no-files-found: error
+
+  release-manifest:
+    runs-on: ubuntu-24.04
+    needs: [package-deb, package-rpm, source-dist]
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: release
+      - name: Create checksums
+        run: |
+          find release -type f ! -name SHA256SUMS ! -name SHA256SUMS.asc -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS
+      - name: Sign checksums when a release key is configured
+        env:
+          RELEASE_GPG_PRIVATE_KEY: ${{ secrets.RELEASE_GPG_PRIVATE_KEY }}
+          RELEASE_GPG_PASSPHRASE: ${{ secrets.RELEASE_GPG_PASSPHRASE }}
+        run: |
+          if [ -n "${RELEASE_GPG_PRIVATE_KEY:-}" ]; then
+            printf '%s' "$RELEASE_GPG_PRIVATE_KEY" | gpg --batch --import
+            gpg --batch --yes --armor --detach-sign --pinentry-mode loopback --passphrase "${RELEASE_GPG_PASSPHRASE:-}" --output SHA256SUMS.asc SHA256SUMS
+          else
+            echo "Release signing key is not configured; publishing unsigned checksums."
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-manifest
+          path: |
+            SHA256SUMS
+            SHA256SUMS.asc
+          if-no-files-found: warn

@@ -1,0 +1,48 @@
+.TH LINUXUSBCREATOR 1 "July 2026" "Linux USB Creator 0.3.0" "User Commands"
+.SH NAME
+linuxusbcreator \- inspect USB devices and write verified raw images
+.SH SYNOPSIS
+.B linuxusbcreator
+.br
+.B linuxusbcreator --diagnose
+.br
+.B linuxusbcreator --sha256
+.I IMAGE
+.br
+.B linuxusbcreator --write-image
+.I IMAGE DEVICE SERIAL SIZE
+.RI [ --no-verify ]
+.SH DESCRIPTION
+Linux USB Creator discovers removable storage through UDisks2. Raw image writes
+are performed by a short-lived Polkit helper; the graphical process is never
+run as root.
+.SH OPTIONS
+.TP
+.B --diagnose
+Print detected devices and their eligibility as JSON.
+.TP
+.BI --sha256 " IMAGE"
+Compute SHA-256 for a regular image file.
+.TP
+.BI --write-image " IMAGE DEVICE SERIAL SIZE"
+Destroy the contents of the confirmed removable USB device and write IMAGE.
+SERIAL and SIZE must match the immediately preceding diagnostic result. Full
+read-back SHA-256 verification is enabled by default.
+.TP
+.B --no-verify
+Skip read-back verification. This is not recommended.
+.TP
+.B --version
+Print the program version.
+.SH SAFETY
+The helper rejects partitions, non-USB media, non-removable or read-only media,
+active swap, mounted filesystems after unmounting, changed serial or capacity,
+and the current system/root disk.
+.SH FILES
+.TP
+.I /var/log/linuxusbcreator.jsonl
+Root-owned structured operation log.
+.SH AUTHOR
+Víctor Díaz Gonzalez.
+.SH REPORTING BUGS
+https://github.com/Zsk1dr0W/linuxusbcreator/issues

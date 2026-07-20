@@ -1,7 +1,7 @@
 project(
   'linuxusbcreator',
   'c',
-  version: '0.2.0',
+  version: '0.3.0',
   license: 'GPL-3.0-or-later',
   meson_version: '>= 0.61.0',
   # GTK headers currently trigger a pedantic warning with GCC 16. Keep
@@ -24,11 +24,14 @@ adw_dep = dependency('libadwaita-1', version: '>= 1.2')
 
 conf = configuration_data()
 conf.set_quoted('PROJECT_VERSION', meson.project_version())
+conf.set_quoted('GETTEXT_PACKAGE', 'linuxusbcreator')
 conf.set_quoted('LUC_HELPER_PATH', get_option('prefix') / get_option('libexecdir') / 'linuxusbcreator-helper')
+conf.set_quoted('LOCALEDIR', get_option('prefix') / get_option('localedir'))
 configure_file(output: 'config.h', configuration: conf)
 
 subdir('src')
 subdir('data')
+subdir('po')
 subdir('tests')
 
 summary(

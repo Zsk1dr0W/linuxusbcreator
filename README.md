@@ -9,9 +9,12 @@ not affiliated with the Rufus project.
 
 ## Project status
 
-Milestone M2 provides read-only discovery plus a Polkit-authorized raw image
-writer with full read-back verification. The write workflow is currently
-available through the command line while the GTK writing UI is developed. See
+Milestone M3 packages the read-only discovery and Polkit-authorized raw image
+writer as the first distributable release. It includes full read-back
+verification, Spanish localization, desktop/AppStream metadata, a manual page,
+reproducible source archives, and install-tested `.deb` and `.rpm` artifacts.
+The write workflow is currently available through the command line while the
+GTK writing UI is developed. See
 [ROADMAP.md](ROADMAP.md) for the implementation plan and
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the proposed design.
 
@@ -46,7 +49,7 @@ available through the command line while the GTK writing UI is developed. See
 On Fedora:
 
 ```sh
-sudo dnf install gcc meson ninja-build gtk4-devel libadwaita-devel glib2-devel udisks2
+sudo dnf install gcc gettext meson ninja-build gtk4-devel libadwaita-devel glib2-devel udisks2
 meson setup _build
 meson compile -C _build
 meson test -C _build --print-errorlogs
@@ -56,7 +59,7 @@ meson test -C _build --print-errorlogs
 On Debian or Ubuntu:
 
 ```sh
-sudo apt install gcc meson ninja-build libgtk-4-dev libadwaita-1-dev libglib2.0-dev udisks2
+sudo apt install gcc gettext meson ninja-build libgtk-4-dev libadwaita-1-dev libglib2.0-dev udisks2
 meson setup _build
 meson compile -C _build
 meson test -C _build --print-errorlogs
@@ -89,15 +92,16 @@ USB bus, removability, mount state, swap state, and system-disk status before
 opening the whole block device exclusively. This command destroys all data on
 the target device.
 
-GitHub Actions builds on Ubuntu and Fedora and produces `.deb` and `.rpm`
-artifacts. Packaging details are in [packaging/README.md](packaging/README.md).
+GitHub Actions builds on Debian, Ubuntu, Fedora, and openSUSE, produces `.deb`
+and `.rpm` artifacts, and publishes a reproducible source archive plus release
+checksums. Packaging details are in
+[packaging/README.md](packaging/README.md).
 
 ## Safety
 
-Writing an image destroys data on the selected device. No write implementation
-will be merged before device identity checks, system-disk exclusion, unmount
-handling, confirmation UX, cancellation semantics, and integration tests are in
-place.
+Writing an image destroys data on the selected device. The privileged helper
+enforces device identity checks, system-disk exclusion, unmount handling,
+exclusive access, and cancellation semantics before and during each operation.
 
 ## Licensing
 

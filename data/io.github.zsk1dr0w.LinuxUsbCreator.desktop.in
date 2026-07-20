@@ -1,6 +1,8 @@
 [Desktop Entry]
 Name=Linux USB Creator
+Name[es]=Creador de USB Linux
 Comment=Inspect removable USB devices and create bootable media
+Comment[es]=Inspecciona dispositivos USB y crea medios de arranque
 Exec=linuxusbcreator
 Icon=io.github.zsk1dr0w.LinuxUsbCreator
 Terminal=false
@@ -8,4 +10,3 @@ Type=Application
 Categories=Utility;System;
 Keywords=USB;ISO;bootable;image;
 StartupNotify=true
-

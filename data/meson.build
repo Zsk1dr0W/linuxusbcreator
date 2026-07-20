@@ -39,6 +39,8 @@ install_data(
   install_dir: get_option('datadir') / 'polkit-1/actions',
 )
 
+install_man('linuxusbcreator.1')
+
 if find_program('desktop-file-validate', required: false).found()
   test(
     'desktop-file-validate',

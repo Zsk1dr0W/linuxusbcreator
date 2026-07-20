@@ -4,6 +4,7 @@ Priority: optional
 Maintainer: Víctor Díaz Gonzalez <106137683+Zsk1dr0W@users.noreply.github.com>
 Build-Depends:
  debhelper-compat (= 13),
+ gettext,
  libadwaita-1-dev (>= 1.2),
  libglib2.0-dev (>= 2.72),
  libgtk-4-dev (>= 4.8),
@@ -16,5 +17,5 @@ Package: linuxusbcreator
 Architecture: any
 Depends: ${misc:Depends}, ${shlibs:Depends}, policykit-1, udisks2
 Description: native Linux utility for creating bootable USB media
- Linux USB Creator safely inspects removable USB storage and is being developed
- to create verified bootable media. This version provides read-only discovery.
+ Linux USB Creator safely inspects removable USB storage and writes raw images
+ through a narrowly scoped Polkit helper with full read-back verification.

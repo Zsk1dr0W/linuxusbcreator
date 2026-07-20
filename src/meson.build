@@ -14,7 +14,7 @@ core_dep = declare_dependency(
   dependencies: [glib_dep, gio_dep],
 )
 
-helper_exe = executable(
+app_exe = executable(
   'linuxusbcreator',
   files('app/main.c', 'app/window.c') + linux_sources,
   include_directories: include_directories('.', '..'),
@@ -22,7 +22,7 @@ helper_exe = executable(
   install: true,
 )
 
-executable(
+helper_exe = executable(
   'linuxusbcreator-helper',
   files('helper/main.c') + linux_sources,
   include_directories: include_directories('.', '..'),

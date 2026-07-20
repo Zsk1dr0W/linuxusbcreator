@@ -1,5 +1,6 @@
 /* SPDX-License-Identifier: GPL-3.0-or-later */
 #include "app/window.h"
+#include <glib/gi18n.h>
 
 struct _LucWindow {
     AdwApplicationWindow parent_instance;
@@ -63,7 +64,7 @@ refresh_devices(LucWindow *self)
     }
 
     if (devices->len == 0)
-        gtk_label_set_text(self->status, "No storage devices were reported by UDisks2.");
+        gtk_label_set_text(self->status, _("No storage devices were reported by UDisks2."));
     else {
         g_autofree gchar *message = g_strdup_printf(
             "%u device%s detected; %u eligible removable USB device%s.",
@@ -105,9 +106,9 @@ luc_window_init(LucWindow *self)
     AdwHeaderBar *header = ADW_HEADER_BAR(adw_header_bar_new());
     GtkWidget *scroller = gtk_scrolled_window_new();
     GtkWidget *content = gtk_box_new(GTK_ORIENTATION_VERTICAL, 12);
-    GtkWidget *title = gtk_label_new("Detected storage devices");
+    GtkWidget *title = gtk_label_new(_("Detected storage devices"));
 
-    gtk_window_set_title(GTK_WINDOW(self), "Linux USB Creator");
+    gtk_window_set_title(GTK_WINDOW(self), _("Linux USB Creator"));
     gtk_window_set_default_size(GTK_WINDOW(self), 680, 520);
     adw_toolbar_view_add_top_bar(toolbar, GTK_WIDGET(header));
 
@@ -119,7 +120,7 @@ luc_window_init(LucWindow *self)
     gtk_widget_add_css_class(title, "title-2");
     gtk_box_append(GTK_BOX(content), title);
 
-    self->status = GTK_LABEL(gtk_label_new("Scanning UDisks2…"));
+    self->status = GTK_LABEL(gtk_label_new(_("Scanning UDisks2…")));
     gtk_label_set_xalign(self->status, 0.0f);
     gtk_label_set_wrap(self->status, TRUE);
     gtk_widget_add_css_class(GTK_WIDGET(self->status), "dim-label");
@@ -148,4 +149,3 @@ luc_window_new(AdwApplication *application, LucDeviceMonitor *monitor)
     refresh_devices(self);
     return GTK_WIDGET(self);
 }
-

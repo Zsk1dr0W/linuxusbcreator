@@ -55,13 +55,14 @@ Cumplido inicialmente con el Kingston DataTraveler documentado en
 
 ## M3 — Primera versión distribuible
 
-- [ ] Completar metadatos AppStream, archivo `.desktop`, iconos, traducciones y
+- [x] Completar metadatos AppStream, archivo `.desktop`, iconos, traducciones y
   página de manual.
-- [ ] Generar un tarball de fuentes reproducible.
+- [x] Generar un tarball de fuentes reproducible.
 - [x] Configurar CI para producir artefactos `.deb` y `.rpm`.
 - [ ] Probar instalación y eliminación de paquetes en Debian, Ubuntu, Fedora y
   openSUSE.
-- [ ] Publicar checksums de lanzamiento firmados y el modelo de amenazas.
+- [x] Publicar checksums de lanzamiento y el modelo de amenazas.
+- [ ] Configurar la clave OpenPGP de release y publicar checksums firmados.
 
 Criterio de salida: los paquetes se instalan limpiamente y el MVP funciona sin
 iniciar la interfaz gráfica como root.
