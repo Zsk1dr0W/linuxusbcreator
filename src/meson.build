@@ -1,4 +1,4 @@
-core_sources = files('core/device.c', 'core/image-writer.c')
+core_sources = files('core/device.c', 'core/image-writer.c', 'core/operation-log.c')
 linux_sources = files('linux/device-monitor.c')
 
 core_lib = static_library(

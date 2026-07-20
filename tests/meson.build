@@ -13,3 +13,11 @@ image_test = executable(
   dependencies: [core_dep],
 )
 test('image-writer', image_test)
+
+operation_log_test = executable(
+  'test-operation-log',
+  files('unit/test-operation-log.c'),
+  include_directories: include_directories('../src'),
+  dependencies: [core_dep],
+)
+test('operation-log', operation_log_test)
