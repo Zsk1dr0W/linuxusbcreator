@@ -89,12 +89,14 @@ jobs:
           test -x /usr/libexec/linuxusbcreator-helper
           rpm -q linuxusbcreator
           dnf remove --assumeyes linuxusbcreator
+      - name: Collect RPMs
+        run: |
+          mkdir -p dist
+          find rpmbuild/RPMS rpmbuild/SRPMS -type f -name '*.rpm' -exec cp {} dist/ \;
       - uses: actions/upload-artifact@v4
         with:
           name: rpm-packages
-          path: |
-            rpmbuild/RPMS/**/*.rpm
-            rpmbuild/SRPMS/*.rpm
+          path: dist/*.rpm
           if-no-files-found: error
 
   build-debian:
@@ -161,20 +163,23 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           path: release
+          merge-multiple: true
       - name: Create checksums
         run: |
-          find release -type f ! -name SHA256SUMS ! -name SHA256SUMS.asc -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS
-      - name: Sign checksums when a release key is configured
+          cd release
+          find . -maxdepth 1 -type f ! -name SHA256SUMS ! -name SHA256SUMS.asc -printf '%f\0' | sort -z | xargs -0 sha256sum > ../SHA256SUMS
+      - name: Sign and verify checksums
+        if: github.event_name != 'pull_request'
         env:
           RELEASE_GPG_PRIVATE_KEY: ${{ secrets.RELEASE_GPG_PRIVATE_KEY }}
-          RELEASE_GPG_PASSPHRASE: ${{ secrets.RELEASE_GPG_PASSPHRASE }}
         run: |
-          if [ -n "${RELEASE_GPG_PRIVATE_KEY:-}" ]; then
-            printf '%s' "$RELEASE_GPG_PRIVATE_KEY" | gpg --batch --import
-            gpg --batch --yes --armor --detach-sign --pinentry-mode loopback --passphrase "${RELEASE_GPG_PASSPHRASE:-}" --output SHA256SUMS.asc SHA256SUMS
-          else
-            echo "Release signing key is not configured; publishing unsigned checksums."
-          fi
+          test -n "${RELEASE_GPG_PRIVATE_KEY:-}"
+          printf '%s' "$RELEASE_GPG_PRIVATE_KEY" | gpg --batch --import
+          fingerprint=$(gpg --batch --with-colons --list-secret-keys | awk -F: '$1 == "fpr" { print $10; exit }')
+          test "$fingerprint" = "3491649D47D55918EA55EE12582F7483E526D5F1"
+          gpg --batch --yes --armor --detach-sign --output SHA256SUMS.asc SHA256SUMS
+          gpg --batch --verify SHA256SUMS.asc SHA256SUMS
+          test -s SHA256SUMS.asc
       - uses: actions/upload-artifact@v4
         with:
           name: release-manifest

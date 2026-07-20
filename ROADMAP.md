@@ -62,7 +62,7 @@ Cumplido inicialmente con el Kingston DataTraveler documentado en
 - [x] Probar instalación y eliminación en Debian, Ubuntu, Fedora y openSUSE;
   instalar y eliminar además los paquetes DEB y RPM generados por CI.
 - [x] Publicar checksums de lanzamiento y el modelo de amenazas.
-- [ ] Configurar la clave OpenPGP de release y publicar checksums firmados.
+- [x] Configurar la clave OpenPGP de release y publicar checksums firmados.
 
 Criterio de salida: los paquetes se instalan limpiamente y el MVP funciona sin
 iniciar la interfaz gráfica como root.
