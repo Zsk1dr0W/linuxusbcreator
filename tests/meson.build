@@ -38,6 +38,14 @@ write_operation_test = executable(
 )
 test('write-operation', write_operation_test)
 
+windows_image_test = executable(
+  'test-windows-image',
+  files('unit/test-windows-image.c'),
+  include_directories: include_directories('../src'),
+  dependencies: [core_dep],
+)
+test('windows-image', windows_image_test)
+
 test('helper-rejects-invalid-invocation', helper_exe, should_fail: true)
 
 cli_help_test = find_program('integration/test-cli-help.sh')

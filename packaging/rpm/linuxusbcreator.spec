@@ -16,6 +16,7 @@ BuildRequires:  pkgconfig(gtk4) >= 4.8
 BuildRequires:  pkgconfig(libadwaita-1) >= 1.2
 Requires:       udisks2
 Requires:       polkit
+Requires:       7zip
 
 %description
 Linux USB Creator is a native Linux utility for safely inspecting removable USB

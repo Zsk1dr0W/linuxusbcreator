@@ -29,6 +29,10 @@ The application starts an ephemeral helper through `pkexec`; the helper uses
 UDisks2's D-Bus interface for unmounting and revalidation. It does not accept
 arbitrary commands, executable paths, or shell fragments. See ADR 0003.
 
+Para medios de Windows, la inspección y extracción ISO/UDF y la división WIM se
+ejecutan sin privilegios. El helper conserva únicamente el particionado y
+formato de un USB revalidado mediante un plan cerrado. Véase ADR 0004.
+
 ## Proposed source tree
 
 ```text

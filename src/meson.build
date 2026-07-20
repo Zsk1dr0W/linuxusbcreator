@@ -3,6 +3,7 @@ core_sources = files(
   'core/helper-protocol.c',
   'core/image-writer.c',
   'core/operation-log.c',
+  'core/windows-image.c',
 )
 linux_sources = files('linux/device-monitor.c')
 

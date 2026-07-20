@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: linuxusbcreator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-20 04:22-0400\n"
+"POT-Creation-Date: 2026-07-20 05:30-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,39 +18,43 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
-#: src/app/main.c:20
+#: src/app/main.c:21
 msgid "Usage:"
 msgstr ""
 
-#: src/app/main.c:25
+#: src/app/main.c:27
 msgid "Commands:"
 msgstr ""
 
-#: src/app/main.c:26
+#: src/app/main.c:28
 msgid "Print detected devices and eligibility as JSON"
 msgstr ""
 
-#: src/app/main.c:27
+#: src/app/main.c:29
 msgid "Compute SHA-256 for a regular image file"
 msgstr ""
 
-#: src/app/main.c:28
-msgid "Write and verify an image on a confirmed USB device"
-msgstr ""
-
-#: src/app/main.c:29
-msgid "Skip read-back verification (not recommended)"
-msgstr ""
-
 #: src/app/main.c:30
-msgid "Options:"
+msgid "Inspect a Windows ISO9660/UDF installer as JSON"
 msgstr ""
 
 #: src/app/main.c:31
-msgid "Show this help"
+msgid "Write and verify an image on a confirmed USB device"
 msgstr ""
 
 #: src/app/main.c:32
+msgid "Skip read-back verification (not recommended)"
+msgstr ""
+
+#: src/app/main.c:33
+msgid "Options:"
+msgstr ""
+
+#: src/app/main.c:34
+msgid "Show this help"
+msgstr ""
+
+#: src/app/main.c:35
 msgid "Show program version"
 msgstr ""
 

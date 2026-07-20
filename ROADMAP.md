@@ -97,13 +97,21 @@ el USB fue reconocido por el menú de arranque de una laptop real, inició Fedor
 
 ## M4 — Medios de instalación de Windows
 
-- [ ] Inspeccionar sistemas de archivos ISO9660/UDF.
+- [x] Definir el canal seguro y su separación de privilegios en ADR 0004.
+- [x] Inspeccionar sistemas de archivos ISO9660/UDF sin privilegios y detectar
+  estructuras de instalación, arquitecturas UEFI, payload WIM/ESD, límites
+  FAT32, rutas inseguras y colisiones de nombres.
+- [ ] Validar el inspector con ISO vigentes de Windows x64 y ARM64 y conservar
+  fixtures de metadatos sin redistribuir contenido propietario.
 - [ ] Crear diseños GPT/MBR para objetivos BIOS y UEFI.
 - [ ] Formatear FAT32/NTFS mediante helpers controlados.
 - [ ] Copiar archivos conservando los metadatos relevantes.
 - [ ] Dividir archivos `install.wim` grandes con wimlib.
 - [ ] Validar estructuras de arranque y probar imágenes actuales del instalador
   de Windows.
+
+El primer perfil escribible será UEFI/FAT32. BIOS y NTFS no se anunciarán como
+compatibles hasta superar sus propias pruebas de arranque en hardware real.
 
 ## M5 — Modo ISO y persistencia Linux
 

@@ -8,6 +8,7 @@
 
 #include "app/window.h"
 #include "core/image-writer.h"
+#include "core/windows-image.h"
 #include "linux/device-monitor.h"
 
 #define APPLICATION_ID "io.github.zsk1dr0w.LinuxUsbCreator"
@@ -21,15 +22,48 @@ print_help(const gchar *program)
     g_print("  %s [OPTION…]\n", program);
     g_print("  %s --diagnose\n", program);
     g_print("  %s --sha256 IMAGE\n", program);
+    g_print("  %s --inspect-windows IMAGE\n", program);
     g_print("  %s --write-image IMAGE DEVICE SERIAL SIZE [--no-verify]\n\n", program);
     g_print("%s\n", _("Commands:"));
     g_print("  %-45s %s\n", "--diagnose", _("Print detected devices and eligibility as JSON"));
     g_print("  %-45s %s\n", "--sha256 IMAGE", _("Compute SHA-256 for a regular image file"));
+    g_print("  %-45s %s\n", "--inspect-windows IMAGE", _("Inspect a Windows ISO9660/UDF installer as JSON"));
     g_print("  %-45s %s\n", "--write-image IMAGE DEVICE SERIAL SIZE", _("Write and verify an image on a confirmed USB device"));
     g_print("  %-45s %s\n\n", "--no-verify", _("Skip read-back verification (not recommended)"));
     g_print("%s\n", _("Options:"));
     g_print("  %-45s %s\n", "-h, --help", _("Show this help"));
     g_print("  %-45s %s\n", "-V, --version", _("Show program version"));
+}
+
+static int
+run_windows_inspection(const gchar *path)
+{
+    g_autoptr(GError) error = NULL;
+    g_autoptr(LucWindowsImageInfo) info =
+        luc_windows_image_inspect(path, NULL, &error);
+
+    if (info == NULL) {
+        g_printerr("Unable to inspect Windows image: %s\n", error->message);
+        return 2;
+    }
+    g_print("{\"format\":\"%s\",\"windows_installer\":%s,"
+            "\"uefi_x64\":%s,\"uefi_arm64\":%s,\"bios\":%s,"
+            "\"install_payload\":\"%s\",\"install_size\":%" G_GUINT64_FORMAT ","
+            "\"content_size\":%" G_GUINT64_FORMAT ",\"file_count\":%u,"
+            "\"requires_wim_split\":%s,\"fat32_compatible\":%s,"
+            "\"unsafe_paths\":%s,\"case_collisions\":%s}\n",
+            luc_windows_image_format_to_string(info->format),
+            info->is_windows_installer ? "true" : "false",
+            info->supports_uefi_x64 ? "true" : "false",
+            info->supports_uefi_arm64 ? "true" : "false",
+            info->supports_bios ? "true" : "false",
+            luc_windows_install_payload_to_string(info->install_payload),
+            info->install_size, info->content_size, info->file_count,
+            info->requires_wim_split ? "true" : "false",
+            info->fat32_compatible ? "true" : "false",
+            info->has_unsafe_paths ? "true" : "false",
+            info->has_case_collisions ? "true" : "false");
+    return info->is_windows_installer ? 0 : 3;
 }
 
 static gchar *
@@ -165,6 +199,8 @@ main(int argc, char **argv)
         return run_diagnostics();
     if (argc == 3 && g_str_equal(argv[1], "--sha256"))
         return run_sha256(argv[2]);
+    if (argc == 3 && g_str_equal(argv[1], "--inspect-windows"))
+        return run_windows_inspection(argv[2]);
     if ((argc == 6 || argc == 7) && g_str_equal(argv[1], "--write-image")) {
         gboolean verify = argc == 6 || !g_str_equal(argv[6], "--no-verify");
         if (argc == 7 && verify) {

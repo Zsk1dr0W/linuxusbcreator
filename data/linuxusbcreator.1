@@ -9,6 +9,9 @@ linuxusbcreator \- inspect USB devices and write verified raw images
 .B linuxusbcreator --sha256
 .I IMAGE
 .br
+.B linuxusbcreator --inspect-windows
+.I IMAGE
+.br
 .B linuxusbcreator --write-image
 .I IMAGE DEVICE SERIAL SIZE
 .RI [ --no-verify ]
@@ -27,6 +30,11 @@ Print detected devices and their eligibility as JSON.
 .TP
 .BI --sha256 " IMAGE"
 Compute SHA-256 for a regular image file.
+.TP
+.BI --inspect-windows " IMAGE"
+Inspect an ISO9660/UDF Windows installer without privileges and print its boot
+architectures, install payload and FAT32 compatibility as JSON. This command
+never writes a device.
 .TP
 .BI --write-image " IMAGE DEVICE SERIAL SIZE"
 Destroy the contents of the confirmed removable USB device and write IMAGE.
