@@ -104,7 +104,7 @@ el USB fue reconocido por el menú de arranque de una laptop real, inició Fedor
 - [x] Validar el inspector y los payloads con dos ISO x64 reales, una WIM y una
   ESD, conservando solo hashes y metadatos no propietarios.
 - [x] Repetir la matriz con dos ISO ARM64 reales, una WIM y una ESD.
-- [ ] Validar imágenes oficiales vigentes de Microsoft cuya procedencia pueda
+- [x] Validar imágenes oficiales vigentes de Microsoft cuya procedencia pueda
   documentarse.
 - [ ] Crear diseños GPT/MBR para objetivos BIOS y UEFI.
 - [ ] Formatear FAT32/NTFS mediante helpers controlados.
