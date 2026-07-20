@@ -28,7 +28,10 @@ test_valid_udf_requires_split(void)
     g_assert_true(info->supports_bios);
     g_assert_true(info->supports_uefi_x64);
     g_assert_false(info->supports_uefi_arm64);
+    g_assert_true(info->has_boot_wim);
+    g_assert_cmpstr(info->boot_wim_path, ==, "sources/boot.wim");
     g_assert_cmpint(info->install_payload, ==, LUC_WINDOWS_INSTALL_PAYLOAD_WIM);
+    g_assert_cmpstr(info->install_path, ==, "sources/install.wim");
     g_assert_cmpuint(info->install_size, ==, G_GUINT64_CONSTANT(5000000000));
     g_assert_true(info->requires_wim_split);
     g_assert_true(info->fat32_compatible);

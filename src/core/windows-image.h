@@ -22,6 +22,7 @@ typedef enum {
 typedef struct {
     LucWindowsImageFormat format;
     LucWindowsInstallPayload install_payload;
+    gchar *boot_wim_path;
     gchar *install_path;
     guint64 image_size;
     guint64 content_size;
@@ -57,5 +58,10 @@ gboolean luc_windows_image_parse_7z_listing(const gchar *listing,
 LucWindowsImageInfo *luc_windows_image_inspect(const gchar *path,
                                                GCancellable *cancellable,
                                                GError **error);
+
+gboolean luc_windows_image_verify_payloads(const gchar *mount_path,
+                                           const LucWindowsImageInfo *info,
+                                           GCancellable *cancellable,
+                                           GError **error);
 
 G_END_DECLS

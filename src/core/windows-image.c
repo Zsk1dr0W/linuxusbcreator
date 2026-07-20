@@ -91,9 +91,11 @@ consume_entry(ListingEntry *entry,
     info->largest_file_size = MAX(info->largest_file_size, entry->size);
     if (entry->size > LUC_FAT32_MAX_FILE_SIZE)
         info->oversized_file_count++;
-    if (g_str_equal(folded, "sources/boot.wim"))
+    if (g_str_equal(folded, "sources/boot.wim")) {
         info->has_boot_wim = TRUE;
-    else if (g_str_equal(folded, "sources/install.wim")) {
+        g_free(info->boot_wim_path);
+        info->boot_wim_path = g_strdup(normalized);
+    } else if (g_str_equal(folded, "sources/install.wim")) {
         info->has_install_wim = TRUE;
         info->install_payload = LUC_WINDOWS_INSTALL_PAYLOAD_WIM;
         info->install_size = entry->size;
@@ -121,6 +123,7 @@ luc_windows_image_info_free(LucWindowsImageInfo *info)
 {
     if (info == NULL)
         return;
+    g_free(info->boot_wim_path);
     g_free(info->install_path);
     g_free(info);
 }
@@ -290,4 +293,74 @@ luc_windows_image_inspect(const gchar *path,
         return NULL;
     info->image_size = (guint64)metadata.st_size;
     return g_steal_pointer(&info);
+}
+
+static gboolean
+verify_wim_file(const gchar *path,
+                GCancellable *cancellable,
+                GError **error)
+{
+    g_autofree gchar *tool = NULL;
+    g_autoptr(GSubprocess) process = NULL;
+    g_autofree gchar *stderr_text = NULL;
+    struct stat metadata;
+    const gchar *diagnostic;
+    gsize length;
+    int fd;
+
+    fd = g_open(path, O_RDONLY | O_CLOEXEC | O_NOFOLLOW, 0);
+    if (fd < 0 || fstat(fd, &metadata) != 0 || !S_ISREG(metadata.st_mode)) {
+        if (fd >= 0)
+            close(fd);
+        g_set_error(error, G_IO_ERROR, G_IO_ERROR_INVALID_ARGUMENT,
+                    "WIM payload is not a regular file: %s", path);
+        return FALSE;
+    }
+    close(fd);
+    tool = g_find_program_in_path("wimlib-imagex");
+    if (tool == NULL) {
+        g_set_error_literal(error, G_IO_ERROR, G_IO_ERROR_NOT_FOUND,
+                            "wimlib-imagex is required to validate Windows payloads");
+        return FALSE;
+    }
+    process = g_subprocess_new(G_SUBPROCESS_FLAGS_STDOUT_SILENCE |
+                               G_SUBPROCESS_FLAGS_STDERR_PIPE,
+                               error, tool, "verify", path, NULL);
+    if (process == NULL ||
+        !g_subprocess_communicate_utf8(process, NULL, cancellable,
+                                       NULL, &stderr_text, error))
+        return FALSE;
+    if (g_subprocess_get_successful(process))
+        return TRUE;
+    diagnostic = stderr_text != NULL ? g_strstrip(stderr_text) : "unknown error";
+    length = strlen(diagnostic);
+    if (length > 4096)
+        diagnostic += length - 4096;
+    g_set_error(error, G_IO_ERROR, G_IO_ERROR_INVALID_DATA,
+                "wimlib could not verify '%s': %s", path, diagnostic);
+    return FALSE;
+}
+
+gboolean
+luc_windows_image_verify_payloads(const gchar *mount_path,
+                                  const LucWindowsImageInfo *info,
+                                  GCancellable *cancellable,
+                                  GError **error)
+{
+    g_autofree gchar *boot_path = NULL;
+    g_autofree gchar *install_path = NULL;
+
+    g_return_val_if_fail(mount_path != NULL, FALSE);
+    g_return_val_if_fail(info != NULL, FALSE);
+    if (!info->is_windows_installer || info->boot_wim_path == NULL ||
+        info->install_path == NULL ||
+        !path_is_safe(info->boot_wim_path) || !path_is_safe(info->install_path)) {
+        g_set_error_literal(error, G_IO_ERROR, G_IO_ERROR_INVALID_ARGUMENT,
+                            "Windows image metadata is incomplete or unsafe");
+        return FALSE;
+    }
+    boot_path = g_build_filename(mount_path, info->boot_wim_path, NULL);
+    install_path = g_build_filename(mount_path, info->install_path, NULL);
+    return verify_wim_file(boot_path, cancellable, error) &&
+           verify_wim_file(install_path, cancellable, error);
 }

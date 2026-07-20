@@ -10,6 +10,7 @@
 #include "core/image-writer.h"
 #include "core/windows-image.h"
 #include "linux/device-monitor.h"
+#include "linux/iso-mount.h"
 
 #define APPLICATION_ID "io.github.zsk1dr0w.LinuxUsbCreator"
 
@@ -23,11 +24,13 @@ print_help(const gchar *program)
     g_print("  %s --diagnose\n", program);
     g_print("  %s --sha256 IMAGE\n", program);
     g_print("  %s --inspect-windows IMAGE\n", program);
+    g_print("  %s --validate-windows IMAGE\n", program);
     g_print("  %s --write-image IMAGE DEVICE SERIAL SIZE [--no-verify]\n\n", program);
     g_print("%s\n", _("Commands:"));
     g_print("  %-45s %s\n", "--diagnose", _("Print detected devices and eligibility as JSON"));
     g_print("  %-45s %s\n", "--sha256 IMAGE", _("Compute SHA-256 for a regular image file"));
     g_print("  %-45s %s\n", "--inspect-windows IMAGE", _("Inspect a Windows ISO9660/UDF installer as JSON"));
+    g_print("  %-45s %s\n", "--validate-windows IMAGE", _("Mount read-only and validate Windows WIM/ESD payloads"));
     g_print("  %-45s %s\n", "--write-image IMAGE DEVICE SERIAL SIZE", _("Write and verify an image on a confirmed USB device"));
     g_print("  %-45s %s\n\n", "--no-verify", _("Skip read-back verification (not recommended)"));
     g_print("%s\n", _("Options:"));
@@ -64,6 +67,41 @@ run_windows_inspection(const gchar *path)
             info->has_unsafe_paths ? "true" : "false",
             info->has_case_collisions ? "true" : "false");
     return info->is_windows_installer ? 0 : 3;
+}
+
+static int
+run_windows_validation(const gchar *path)
+{
+    g_autoptr(GError) error = NULL;
+    g_autoptr(LucWindowsImageInfo) info =
+        luc_windows_image_inspect(path, NULL, &error);
+    g_autoptr(LucIsoMount) mount = NULL;
+    gboolean verified;
+
+    if (info == NULL || !info->is_windows_installer) {
+        g_printerr("Unable to validate Windows image: %s\n",
+                   error != NULL ? error->message : "installer structure is incomplete");
+        return 2;
+    }
+    mount = luc_iso_mount_open(path, NULL, &error);
+    if (mount == NULL) {
+        g_printerr("Unable to mount Windows image read-only: %s\n", error->message);
+        return 2;
+    }
+    verified = luc_windows_image_verify_payloads(
+        luc_iso_mount_get_path(mount), info, NULL, &error);
+    if (!luc_iso_mount_close(mount, NULL, verified ? &error : NULL))
+        verified = FALSE;
+    if (!verified) {
+        g_printerr("Unable to validate Windows payloads: %s\n",
+                   error != NULL ? error->message : "unknown error");
+        return 2;
+    }
+    g_print("{\"validated\":true,\"format\":\"%s\","
+            "\"install_payload\":\"%s\",\"boot_wim\":true}\n",
+            luc_windows_image_format_to_string(info->format),
+            luc_windows_install_payload_to_string(info->install_payload));
+    return 0;
 }
 
 static gchar *
@@ -201,6 +239,8 @@ main(int argc, char **argv)
         return run_sha256(argv[2]);
     if (argc == 3 && g_str_equal(argv[1], "--inspect-windows"))
         return run_windows_inspection(argv[2]);
+    if (argc == 3 && g_str_equal(argv[1], "--validate-windows"))
+        return run_windows_validation(argv[2]);
     if ((argc == 6 || argc == 7) && g_str_equal(argv[1], "--write-image")) {
         gboolean verify = argc == 6 || !g_str_equal(argv[6], "--no-verify");
         if (argc == 7 && verify) {

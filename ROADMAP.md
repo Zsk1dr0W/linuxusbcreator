@@ -101,8 +101,10 @@ el USB fue reconocido por el menú de arranque de una laptop real, inició Fedor
 - [x] Inspeccionar sistemas de archivos ISO9660/UDF sin privilegios y detectar
   estructuras de instalación, arquitecturas UEFI, payload WIM/ESD, límites
   FAT32, rutas inseguras y colisiones de nombres.
-- [ ] Validar el inspector con ISO vigentes de Windows x64 y ARM64 y conservar
-  fixtures de metadatos sin redistribuir contenido propietario.
+- [x] Validar el inspector y los payloads con dos ISO x64 reales, una WIM y una
+  ESD, conservando solo hashes y metadatos no propietarios.
+- [ ] Repetir la matriz con una ISO ARM64 y con imágenes oficiales vigentes de
+  Microsoft cuya procedencia pueda documentarse.
 - [ ] Crear diseños GPT/MBR para objetivos BIOS y UEFI.
 - [ ] Formatear FAT32/NTFS mediante helpers controlados.
 - [ ] Copiar archivos conservando los metadatos relevantes.

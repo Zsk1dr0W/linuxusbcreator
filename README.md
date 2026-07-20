@@ -18,8 +18,9 @@ artifacts. See
 [ROADMAP.md](ROADMAP.md) for the implementation plan and
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the proposed design.
 M4 is now in progress with read-only ISO9660/UDF inspection for Windows
-installers; Windows media creation remains disabled until the partitioning,
-copying and WIM-splitting gates are complete.
+installers and complete WIM/ESD payload validation through read-only UDisks2
+loops. Windows media creation remains disabled until the partitioning, copying
+and WIM-splitting gates are complete.
 
 ## Initial goals
 
@@ -52,7 +53,7 @@ copying and WIM-splitting gates are complete.
 On Fedora:
 
 ```sh
-sudo dnf install gcc gettext meson ninja-build gtk4-devel libadwaita-devel glib2-devel udisks2 7zip
+sudo dnf install gcc gettext meson ninja-build gtk4-devel libadwaita-devel glib2-devel udisks2 7zip wimlib-utils
 meson setup _build
 meson compile -C _build
 meson test -C _build --print-errorlogs
@@ -62,7 +63,7 @@ meson test -C _build --print-errorlogs
 On Debian or Ubuntu:
 
 ```sh
-sudo apt install gcc gettext meson ninja-build libgtk-4-dev libadwaita-1-dev libglib2.0-dev udisks2 7zip
+sudo apt install gcc gettext meson ninja-build libgtk-4-dev libadwaita-1-dev libglib2.0-dev udisks2 7zip wimtools
 meson setup _build
 meson compile -C _build
 meson test -C _build --print-errorlogs
@@ -85,6 +86,12 @@ To inspect an ISO9660/UDF Windows installer without writing any device:
 
 ```sh
 ./_build/src/linuxusbcreator --inspect-windows /path/to/windows.iso
+```
+
+For a complete read-only validation of `boot.wim` and `install.wim`/`.esd`:
+
+```sh
+./_build/src/linuxusbcreator --validate-windows /path/to/windows.iso
 ```
 
 After installation, a confirmed removable USB can be written and fully

@@ -6,6 +6,7 @@ core_sources = files(
   'core/windows-image.c',
 )
 linux_sources = files('linux/device-monitor.c')
+iso_mount_sources = files('linux/iso-mount.c')
 
 core_lib = static_library(
   'linuxusbcreator-core',
@@ -35,9 +36,9 @@ write_operation_dep = declare_dependency(
 
 app_exe = executable(
   'linuxusbcreator',
-  files('app/main.c', 'app/window.c') + linux_sources,
+  files('app/main.c', 'app/window.c') + linux_sources + iso_mount_sources,
   include_directories: include_directories('.', '..'),
-  dependencies: [core_dep, write_operation_dep, gio_dep, gtk_dep, adw_dep],
+  dependencies: [core_dep, write_operation_dep, gio_dep, gio_unix_dep, gtk_dep, adw_dep],
   install: true,
 )
 
