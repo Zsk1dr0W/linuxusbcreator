@@ -36,6 +36,12 @@ sistema reconoció `/dev/sda1` como `iso9660`, con etiqueta
 `Fedora-WS-Live-44`, y `/dev/sda2` como `vfat`. El NVMe que contiene `/`,
 `/home` y `/boot` permaneció excluido de los destinos elegibles.
 
-Esta prueba valida la creación y verificación del medio desde la interfaz. El
-arranque físico del equipo desde la memoria USB no fue comprobado en esta
-sesión.
+## Validación de arranque físico
+
+| Fecha | Medio creado con | Equipo | Resultado |
+|---|---|---|---|
+| 2026-07-20 | Linux USB Creator 0.4.0 | Laptop real | El firmware reconoció el USB en su menú de arranque; Fedora 44 inició correctamente y llegó al menú de instalación |
+
+Esta prueba valida el recorrido completo desde la creación y verificación del
+medio en la interfaz hasta el inicio del instalador en hardware real. No se
+completó una instalación de Fedora sobre el disco de la laptop.

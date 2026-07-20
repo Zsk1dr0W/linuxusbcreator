@@ -91,7 +91,9 @@ Criterio de salida: una persona puede completar una escritura raw verificada
 desde la interfaz sin ejecutar la aplicación como root y sin poder seleccionar
 el disco del sistema.
 Cumplido con Linux USB Creator 0.4.0 y una imagen Fedora Workstation Live 44;
-la evidencia se conserva en `docs/MATRIZ_PRUEBAS_HARDWARE.md`.
+el USB fue reconocido por el menú de arranque de una laptop real, inició Fedora
+44 y llegó al menú de instalación. La evidencia se conserva en
+`docs/MATRIZ_PRUEBAS_HARDWARE.md`.
 
 ## M4 — Medios de instalación de Windows
 
