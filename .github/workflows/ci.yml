@@ -51,10 +51,14 @@ jobs:
         run: cp -a packaging/debian debian
       - name: Build DEB
         run: dpkg-buildpackage --build=binary --no-sign
+      - name: Collect DEB
+        run: |
+          mkdir -p dist
+          cp ../*.deb dist/
       - uses: actions/upload-artifact@v4
         with:
           name: deb-packages
-          path: ../*.deb
+          path: dist/*.deb
           if-no-files-found: error
 
   package-rpm:
@@ -67,7 +71,8 @@ jobs:
       - name: Create source archive
         run: |
           mkdir -p rpmbuild/BUILD rpmbuild/BUILDROOT rpmbuild/RPMS rpmbuild/SOURCES rpmbuild/SPECS rpmbuild/SRPMS
-          git archive --format=tar --prefix=linuxusbcreator-0.1.0/ HEAD | xz > rpmbuild/SOURCES/linuxusbcreator-0.1.0.tar.xz
+          git archive --format=tar --prefix=linuxusbcreator-0.1.0/ HEAD > rpmbuild/SOURCES/linuxusbcreator-0.1.0.tar
+          xz -f rpmbuild/SOURCES/linuxusbcreator-0.1.0.tar
           cp packaging/rpm/linuxusbcreator.spec rpmbuild/SPECS/
       - name: Build RPM
         run: rpmbuild --define "_topdir $GITHUB_WORKSPACE/rpmbuild" -ba rpmbuild/SPECS/linuxusbcreator.spec
