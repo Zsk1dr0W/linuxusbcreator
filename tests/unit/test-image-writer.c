@@ -7,10 +7,9 @@
 static gchar *
 make_temp_path(const gchar *suffix)
 {
-    return g_build_filename(g_get_tmp_dir(),
-                            g_strdup_printf("linuxusbcreator-test-%u-%s",
-                                            g_random_int(), suffix),
-                            NULL);
+    g_autofree gchar *name = g_strdup_printf("linuxusbcreator-test-%u-%s",
+                                             g_random_int(), suffix);
+    return g_build_filename(g_get_tmp_dir(), name, NULL);
 }
 
 static void
