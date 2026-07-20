@@ -117,3 +117,51 @@ luc_device_get_display_name(const LucDevice *device)
     return g_strdup("Unknown USB device");
 }
 
+gboolean
+luc_device_validate_confirmation(const LucDevice *device,
+                                 const gchar *expected_serial,
+                                 guint64 expected_size,
+                                 gboolean require_unmounted,
+                                 GError **error)
+{
+    if (device == NULL) {
+        g_set_error_literal(error, G_IO_ERROR, G_IO_ERROR_NOT_FOUND,
+                            "Target disappeared or is unknown to UDisks2");
+        return FALSE;
+    }
+    if (device->system_device) {
+        g_set_error_literal(error, G_IO_ERROR, G_IO_ERROR_PERMISSION_DENIED,
+                            "Refusing the system/root device");
+        return FALSE;
+    }
+    if (g_strcmp0(device->connection_bus, "usb") != 0 ||
+        (!device->removable && !device->media_removable) ||
+        device->optical || device->ignored_kind || device->read_only ||
+        !device->media_available) {
+        g_set_error_literal(error, G_IO_ERROR, G_IO_ERROR_PERMISSION_DENIED,
+                            "Target is not an eligible writable removable USB disk");
+        return FALSE;
+    }
+    if (expected_serial == NULL || expected_serial[0] == '\0' ||
+        g_strcmp0(device->serial, expected_serial) != 0) {
+        g_set_error_literal(error, G_IO_ERROR, G_IO_ERROR_FAILED,
+                            "Target serial changed since user confirmation");
+        return FALSE;
+    }
+    if (expected_size == 0 || device->size != expected_size) {
+        g_set_error_literal(error, G_IO_ERROR, G_IO_ERROR_FAILED,
+                            "Target capacity changed since user confirmation");
+        return FALSE;
+    }
+    if (require_unmounted && device->mounted) {
+        g_set_error_literal(error, G_IO_ERROR, G_IO_ERROR_BUSY,
+                            "Target still has mounted filesystems");
+        return FALSE;
+    }
+    if (device->active_swap) {
+        g_set_error_literal(error, G_IO_ERROR, G_IO_ERROR_BUSY,
+                            "Target contains active swap");
+        return FALSE;
+    }
+    return TRUE;
+}

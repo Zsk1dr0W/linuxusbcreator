@@ -9,8 +9,9 @@ not affiliated with the Rufus project.
 
 ## Project status
 
-Milestone M1 provides a read-only GTK application and a diagnostic command that
-enumerate storage through UDisks2. **It does not write to storage devices.** See
+Milestone M2 provides read-only discovery plus a Polkit-authorized raw image
+writer with full read-back verification. The write workflow is currently
+available through the command line while the GTK writing UI is developed. See
 [ROADMAP.md](ROADMAP.md) for the implementation plan and
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the proposed design.
 
@@ -73,6 +74,20 @@ For a local image checksum (the command only reads the image):
 ```sh
 ./_build/src/linuxusbcreator --sha256 /path/to/image.iso
 ```
+
+After installation, a confirmed removable USB can be written and fully
+verified with:
+
+```sh
+linuxusbcreator --write-image IMAGE DEVICE SERIAL SIZE
+```
+
+`SERIAL` and `SIZE` must be copied from the immediately preceding
+`--diagnose` result. The client invokes a narrowly scoped Polkit helper. The
+helper unmounts the target through UDisks2 and revalidates its serial, size,
+USB bus, removability, mount state, swap state, and system-disk status before
+opening the whole block device exclusively. This command destroys all data on
+the target device.
 
 GitHub Actions builds on Ubuntu and Fedora and produces `.deb` and `.rpm`
 artifacts. Packaging details are in [packaging/README.md](packaging/README.md).

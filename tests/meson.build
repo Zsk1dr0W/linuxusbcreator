@@ -21,3 +21,5 @@ operation_log_test = executable(
   dependencies: [core_dep],
 )
 test('operation-log', operation_log_test)
+
+test('helper-rejects-invalid-invocation', helper_exe, should_fail: true)

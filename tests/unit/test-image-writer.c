@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-3.0-or-later */
 #include <glib.h>
 #include <glib/gstdio.h>
+#include <unistd.h>
 
 #include "core/image-writer.h"
 
@@ -80,6 +81,60 @@ test_destination_must_be_regular_file(void)
     g_remove(source);
 }
 
+typedef struct {
+    int fd;
+    gsize expected;
+    gsize received;
+} PipeReader;
+
+static gpointer
+read_pipe(gpointer user_data)
+{
+    PipeReader *reader = user_data;
+    guint8 buffer[4096];
+
+    while (reader->received < reader->expected) {
+        ssize_t count = read(reader->fd, buffer, sizeof(buffer));
+        if (count <= 0)
+            break;
+        reader->received += (gsize)count;
+    }
+    return NULL;
+}
+
+static void
+test_short_writes_are_retried(void)
+{
+    g_autofree guint8 *payload = g_malloc0(1024 * 1024);
+    g_autoptr(GError) error = NULL;
+    int descriptors[2];
+    PipeReader reader;
+    GThread *thread;
+
+    g_assert_cmpint(pipe(descriptors), ==, 0);
+    reader.fd = descriptors[0];
+    reader.expected = 1024 * 1024;
+    reader.received = 0;
+    thread = g_thread_new("pipe-reader", read_pipe, &reader);
+    g_assert_true(luc_image_write_all_fd(descriptors[1], payload, reader.expected, &error));
+    g_assert_no_error(error);
+    close(descriptors[1]);
+    g_thread_join(thread);
+    close(descriptors[0]);
+    g_assert_cmpuint(reader.received, ==, reader.expected);
+}
+
+static void
+test_disconnected_destination_fails(void)
+{
+    const guint8 payload[] = { 1, 2, 3, 4 };
+    g_autoptr(GError) error = NULL;
+
+    g_assert_false(luc_image_write_all_fd(-1, payload, sizeof(payload), &error));
+    g_assert_nonnull(error);
+    g_assert_cmpuint(error->domain, ==, G_IO_ERROR);
+}
+
 int
 main(int argc, char **argv)
 {
@@ -88,5 +143,7 @@ main(int argc, char **argv)
     g_test_add_func("/image/copy-and-verify", test_copy_and_verify);
     g_test_add_func("/image/cancelled", test_cancelled_copy);
     g_test_add_func("/image/regular-destination", test_destination_must_be_regular_file);
+    g_test_add_func("/image/short-writes", test_short_writes_are_retried);
+    g_test_add_func("/image/disconnected-destination", test_disconnected_destination_fails);
     return g_test_run();
 }

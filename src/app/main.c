@@ -52,6 +52,31 @@ run_sha256(const gchar *path)
 }
 
 static int
+run_privileged_write(const gchar *image,
+                     const gchar *device,
+                     const gchar *serial,
+                     const gchar *size,
+                     gboolean verify)
+{
+    g_autoptr(GError) error = NULL;
+    g_autoptr(GSubprocess) subprocess = NULL;
+
+    subprocess = g_subprocess_new(G_SUBPROCESS_FLAGS_NONE, &error,
+                                  "pkexec", LUC_HELPER_PATH, "write", image,
+                                  device, serial, size, "--verify",
+                                  verify ? "yes" : "no", NULL);
+    if (subprocess == NULL) {
+        g_printerr("Unable to start privileged helper: %s\n", error->message);
+        return 2;
+    }
+    if (!g_subprocess_wait_check(subprocess, NULL, &error)) {
+        g_printerr("Privileged write failed: %s\n", error->message);
+        return 2;
+    }
+    return 0;
+}
+
+static int
 run_diagnostics(void)
 {
     g_autoptr(GError) error = NULL;
@@ -109,6 +134,14 @@ main(int argc, char **argv)
         return run_diagnostics();
     if (argc == 3 && g_str_equal(argv[1], "--sha256"))
         return run_sha256(argv[2]);
+    if ((argc == 6 || argc == 7) && g_str_equal(argv[1], "--write-image")) {
+        gboolean verify = argc == 6 || !g_str_equal(argv[6], "--no-verify");
+        if (argc == 7 && verify) {
+            g_printerr("Unknown write option: %s\n", argv[6]);
+            return 2;
+        }
+        return run_privileged_write(argv[2], argv[3], argv[4], argv[5], verify);
+    }
     if (argc == 2 && (g_str_equal(argv[1], "--version") || g_str_equal(argv[1], "-V"))) {
         g_print("linuxusbcreator %s\n", PROJECT_VERSION);
         return 0;

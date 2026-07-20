@@ -82,6 +82,56 @@ test_copy_is_independent(void)
     g_assert_true(original->device != copy->device);
 }
 
+static void
+test_confirmation_accepts_expected_device(void)
+{
+    g_autoptr(LucDevice) device = eligible_device();
+    g_autoptr(GError) error = NULL;
+
+    device->serial = g_strdup("SERIAL-1");
+    g_assert_true(luc_device_validate_confirmation(device, "SERIAL-1", device->size,
+                                                   TRUE, &error));
+    g_assert_no_error(error);
+}
+
+static void
+test_confirmation_rejects_root_device(void)
+{
+    g_autoptr(LucDevice) device = eligible_device();
+    g_autoptr(GError) error = NULL;
+
+    device->serial = g_strdup("SERIAL-1");
+    device->system_device = TRUE;
+    g_assert_false(luc_device_validate_confirmation(device, "SERIAL-1", device->size,
+                                                    TRUE, &error));
+    g_assert_error(error, G_IO_ERROR, G_IO_ERROR_PERMISSION_DENIED);
+}
+
+static void
+test_confirmation_rejects_identity_change(void)
+{
+    g_autoptr(LucDevice) device = eligible_device();
+    g_autoptr(GError) error = NULL;
+
+    device->serial = g_strdup("SERIAL-1");
+    g_assert_false(luc_device_validate_confirmation(device, "SERIAL-2", device->size,
+                                                    TRUE, &error));
+    g_assert_error(error, G_IO_ERROR, G_IO_ERROR_FAILED);
+}
+
+static void
+test_confirmation_requires_unmounted_device(void)
+{
+    g_autoptr(LucDevice) device = eligible_device();
+    g_autoptr(GError) error = NULL;
+
+    device->serial = g_strdup("SERIAL-1");
+    device->mounted = TRUE;
+    g_assert_false(luc_device_validate_confirmation(device, "SERIAL-1", device->size,
+                                                    TRUE, &error));
+    g_assert_error(error, G_IO_ERROR, G_IO_ERROR_BUSY);
+}
+
 int
 main(int argc, char **argv)
 {
@@ -94,6 +144,9 @@ main(int argc, char **argv)
     g_test_add_func("/device/reject-active-swap", test_swap_precedes_mount_rejection);
     g_test_add_func("/device/reject-no-media", test_empty_media_is_rejected_first);
     g_test_add_func("/device/copy", test_copy_is_independent);
+    g_test_add_func("/device/confirmation-accept", test_confirmation_accepts_expected_device);
+    g_test_add_func("/device/confirmation-root", test_confirmation_rejects_root_device);
+    g_test_add_func("/device/confirmation-identity", test_confirmation_rejects_identity_change);
+    g_test_add_func("/device/confirmation-mounted", test_confirmation_requires_unmounted_device);
     return g_test_run();
 }
-

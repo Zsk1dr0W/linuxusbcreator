@@ -11,8 +11,8 @@
       storage and, in future releases, creating verified bootable media.
     </p>
     <p>
-      This development release is read-only and exists to validate conservative
-      device discovery before write support is implemented.
+      Version 0.2 adds conservative, Polkit-authorized raw image writing with
+      device identity revalidation and complete read-back verification.
     </p>
   </description>
   <launchable type="desktop-id">io.github.zsk1dr0w.LinuxUsbCreator.desktop</launchable>
@@ -23,6 +23,11 @@
   </developer>
   <content_rating type="oars-1.1" />
   <releases>
+    <release version="0.2.0" date="2026-07-20">
+      <description>
+        <p>Raw image writer MVP with Polkit, UDisks2 and verification.</p>
+      </description>
+    </release>
     <release version="0.1.0" date="2026-07-20">
       <description>
         <p>Initial read-only device discovery milestone.</p>
@@ -30,4 +35,3 @@
     </release>
   </releases>
 </component>
-

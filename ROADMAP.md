@@ -30,25 +30,28 @@ de rama sigue pendiente de configuración en GitHub.
 - [ ] Añadir pruebas de integración con un D-Bus privado y datos capturados de
   UDisks2.
 
-Criterio de salida: no existe ningún camino de código que abra un dispositivo de
-bloque para escribir. Este criterio está cumplido; las pruebas de integración
-siguen siendo una mejora pendiente para robustecer la cobertura del monitor.
+Criterio de salida histórico: la entrega M1 no contenía ningún camino que
+abriera un dispositivo de bloque para escribir. Se cumplió antes de iniciar M2;
+las pruebas de integración siguen siendo una mejora pendiente para robustecer
+la cobertura del monitor.
 
 ## M2 — Escritor de imágenes raw/híbridas (MVP)
 
 - [x] Inspeccionar imágenes y calcular SHA-256 para imágenes regulares.
-- [ ] Obtener autorización mediante un helper Polkit de alcance limitado.
-- [ ] Desmontar particiones objetivo y volver a validar la identidad del
+- [x] Obtener autorización mediante un helper Polkit de alcance limitado.
+- [x] Desmontar particiones objetivo y volver a validar la identidad del
   dispositivo.
-- [ ] Escribir en streaming con memoria acotada, progreso, cancelación y
+- [x] Escribir en streaming con memoria acotada, progreso, cancelación y
   `fsync`.
-- [ ] Añadir verificación completa opcional mediante lectura posterior.
-- [ ] Crear un registro estructurado y exportable de operaciones.
-- [ ] Añadir pruebas de fallos para escrituras cortas, desconexiones y pérdida
+- [x] Añadir verificación completa opcional mediante lectura posterior.
+- [x] Crear un registro estructurado y exportable de operaciones.
+- [x] Añadir pruebas de fallos para escrituras cortas, desconexiones y pérdida
   de permisos.
 
 Criterio de salida: las escrituras raw verificadas funcionan en la matriz de
 hardware de pruebas sin permitir seleccionar el disco actual del sistema.
+Cumplido inicialmente con el Kingston DataTraveler documentado en
+`docs/MATRIZ_PRUEBAS_HARDWARE.md`; la matriz se ampliará con nuevos dispositivos.
 
 ## M3 — Primera versión distribuible
 

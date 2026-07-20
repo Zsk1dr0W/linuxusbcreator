@@ -14,8 +14,7 @@ Rules-Requires-Root: no
 
 Package: linuxusbcreator
 Architecture: any
-Depends: ${misc:Depends}, ${shlibs:Depends}, udisks2
+Depends: ${misc:Depends}, ${shlibs:Depends}, policykit-1, udisks2
 Description: native Linux utility for creating bootable USB media
  Linux USB Creator safely inspects removable USB storage and is being developed
  to create verified bootable media. This version provides read-only discovery.
-

@@ -71,7 +71,7 @@ jobs:
       - name: Create source archive
         run: |
           mkdir -p rpmbuild/BUILD rpmbuild/BUILDROOT rpmbuild/RPMS rpmbuild/SOURCES rpmbuild/SPECS rpmbuild/SRPMS
-          tar --exclude=.git --exclude=rpmbuild --transform='s,^,linuxusbcreator-0.1.0/,' -cJf rpmbuild/SOURCES/linuxusbcreator-0.1.0.tar.xz .
+          tar --exclude=.git --exclude=rpmbuild --transform='s,^,linuxusbcreator-0.2.0/,' -cJf rpmbuild/SOURCES/linuxusbcreator-0.2.0.tar.xz .
           cp packaging/rpm/linuxusbcreator.spec rpmbuild/SPECS/
       - name: Build RPM
         run: rpmbuild --define "_topdir $GITHUB_WORKSPACE/rpmbuild" -ba rpmbuild/SPECS/linuxusbcreator.spec

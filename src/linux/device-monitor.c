@@ -9,6 +9,7 @@
 #define UDISKS_BLOCK "org.freedesktop.UDisks2.Block"
 #define UDISKS_FILESYSTEM "org.freedesktop.UDisks2.Filesystem"
 #define UDISKS_SWAPSPACE "org.freedesktop.UDisks2.Swapspace"
+#define UDISKS_PARTITION "org.freedesktop.UDisks2.Partition"
 
 struct _LucDeviceMonitor {
     GObject parent_instance;
@@ -124,6 +125,7 @@ scan_blocks_for_drive(LucDeviceMonitor *self, LucDevice *device)
     for (item = objects; item != NULL; item = item->next) {
         GDBusObject *object = item->data;
         g_autoptr(GDBusInterface) block = g_dbus_object_get_interface(object, UDISKS_BLOCK);
+        g_autoptr(GDBusInterface) partition = NULL;
         g_autofree gchar *drive_path = NULL;
 
         if (block == NULL)
@@ -132,7 +134,8 @@ scan_blocks_for_drive(LucDeviceMonitor *self, LucDevice *device)
         if (g_strcmp0(drive_path, device->drive_path) != 0)
             continue;
 
-        if (device->device == NULL) {
+        partition = g_dbus_object_get_interface(object, UDISKS_PARTITION);
+        if (device->device == NULL && partition == NULL) {
             device->object_path = g_strdup(g_dbus_object_get_object_path(object));
             device->device = property_bytestring(block, "Device");
             device->read_only = property_boolean(block, "ReadOnly", FALSE);
@@ -202,6 +205,66 @@ luc_device_monitor_dup_devices(LucDeviceMonitor *self)
 
     g_ptr_array_sort(devices, compare_devices);
     return devices;
+}
+
+LucDevice *
+luc_device_monitor_find_device(LucDeviceMonitor *self, const gchar *device_path)
+{
+    g_autoptr(GPtrArray) devices = NULL;
+
+    g_return_val_if_fail(LUC_IS_DEVICE_MONITOR(self), NULL);
+    g_return_val_if_fail(device_path != NULL, NULL);
+    devices = luc_device_monitor_dup_devices(self);
+    for (guint i = 0; i < devices->len; i++) {
+        LucDevice *device = g_ptr_array_index(devices, i);
+        if (g_strcmp0(device->device, device_path) == 0)
+            return luc_device_copy(device);
+    }
+    return NULL;
+}
+
+gboolean
+luc_device_monitor_unmount_drive(LucDeviceMonitor *self,
+                                 const gchar *drive_path,
+                                 GError **error)
+{
+    g_autolist(GDBusObject) objects = NULL;
+
+    g_return_val_if_fail(LUC_IS_DEVICE_MONITOR(self), FALSE);
+    g_return_val_if_fail(drive_path != NULL, FALSE);
+    objects = g_dbus_object_manager_get_objects(self->manager);
+    for (GList *item = objects; item != NULL; item = item->next) {
+        GDBusObject *object = item->data;
+        g_autoptr(GDBusInterface) block = g_dbus_object_get_interface(object, UDISKS_BLOCK);
+        g_autoptr(GDBusInterface) filesystem = NULL;
+        g_autofree gchar *object_drive = NULL;
+        g_autoptr(GVariant) mount_points = NULL;
+        g_autoptr(GVariant) result = NULL;
+        GVariantBuilder options;
+
+        if (block == NULL)
+            continue;
+        object_drive = property_object_path(block, "Drive");
+        if (g_strcmp0(object_drive, drive_path) != 0)
+            continue;
+        filesystem = g_dbus_object_get_interface(object, UDISKS_FILESYSTEM);
+        if (filesystem == NULL)
+            continue;
+        mount_points = proxy_property(filesystem, "MountPoints");
+        if (mount_points == NULL || g_variant_n_children(mount_points) == 0)
+            continue;
+        g_variant_builder_init(&options, G_VARIANT_TYPE_VARDICT);
+        result = g_dbus_proxy_call_sync(G_DBUS_PROXY(filesystem),
+                                        "Unmount",
+                                        g_variant_new("(a{sv})", &options),
+                                        G_DBUS_CALL_FLAGS_NONE,
+                                        -1,
+                                        NULL,
+                                        error);
+        if (result == NULL)
+            return FALSE;
+    }
+    return TRUE;
 }
 
 static void
@@ -294,4 +357,3 @@ luc_device_monitor_new(GError **error)
                      self);
     return g_steal_pointer(&self);
 }
-

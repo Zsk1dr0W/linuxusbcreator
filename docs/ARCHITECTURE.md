@@ -25,9 +25,9 @@ linuxusbcreator (GTK application)
           raw writing, flushing
 ```
 
-Communication between the application and helper will use a versioned D-Bus
-interface. The helper will not accept arbitrary commands, paths to executables,
-or shell fragments.
+The application starts an ephemeral helper through `pkexec`; the helper uses
+UDisks2's D-Bus interface for unmounting and revalidation. It does not accept
+arbitrary commands, executable paths, or shell fragments. See ADR 0003.
 
 ## Proposed source tree
 
@@ -75,4 +75,3 @@ algorithms and compatibility data file by file. Directly adapted code must:
 
 The Win32 GUI, Windows volume management, registry integration, VDS and SetupAPI
 layers will be replaced, not emulated.
-

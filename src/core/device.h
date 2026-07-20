@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: GPL-3.0-or-later */
 #pragma once
 
-#include <glib.h>
+#include <gio/gio.h>
 
 G_BEGIN_DECLS
 
@@ -45,8 +45,12 @@ void luc_device_free(LucDevice *device);
 LucDeviceEligibility luc_device_get_eligibility(const LucDevice *device);
 const gchar *luc_device_eligibility_to_string(LucDeviceEligibility eligibility);
 gchar *luc_device_get_display_name(const LucDevice *device);
+gboolean luc_device_validate_confirmation(const LucDevice *device,
+                                          const gchar *expected_serial,
+                                          guint64 expected_size,
+                                          gboolean require_unmounted,
+                                          GError **error);
 
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(LucDevice, luc_device_free)
 
 G_END_DECLS
-

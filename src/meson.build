@@ -14,10 +14,19 @@ core_dep = declare_dependency(
   dependencies: [glib_dep, gio_dep],
 )
 
-executable(
+helper_exe = executable(
   'linuxusbcreator',
   files('app/main.c', 'app/window.c') + linux_sources,
   include_directories: include_directories('.', '..'),
   dependencies: [core_dep, gio_dep, gtk_dep, adw_dep],
   install: true,
+)
+
+executable(
+  'linuxusbcreator-helper',
+  files('helper/main.c') + linux_sources,
+  include_directories: include_directories('.', '..'),
+  dependencies: [core_dep, gio_dep],
+  install: true,
+  install_dir: get_option('libexecdir'),
 )
