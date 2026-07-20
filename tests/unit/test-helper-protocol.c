@@ -37,6 +37,21 @@ test_rejects_invalid_progress(void)
     g_assert_false(luc_helper_event_parse("not-json", &event));
 }
 
+static void
+test_prepared_partition(void)
+{
+    g_autofree gchar *partition = NULL;
+
+    g_assert_true(luc_helper_parse_prepared(
+        "{\"event\":\"prepared\",\"partition\":\"/dev/sdb1\"}",
+        &partition));
+    g_assert_cmpstr(partition, ==, "/dev/sdb1");
+    g_clear_pointer(&partition, g_free);
+    g_assert_false(luc_helper_parse_prepared(
+        "{\"event\":\"prepared\",\"partition\":\"/tmp/file\"}",
+        &partition));
+}
+
 int
 main(int argc, char **argv)
 {
@@ -44,5 +59,6 @@ main(int argc, char **argv)
     g_test_add_func("/helper-protocol/progress", test_progress);
     g_test_add_func("/helper-protocol/phases", test_phases);
     g_test_add_func("/helper-protocol/reject-invalid", test_rejects_invalid_progress);
+    g_test_add_func("/helper-protocol/prepared", test_prepared_partition);
     return g_test_run();
 }

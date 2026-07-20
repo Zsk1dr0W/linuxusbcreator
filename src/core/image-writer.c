@@ -101,28 +101,31 @@ hash_fd_prefix(int fd,
 gchar *
 luc_image_sha256(const gchar *path, GCancellable *cancellable, GError **error)
 {
-    g_autoptr(GChecksum) checksum = g_checksum_new(G_CHECKSUM_SHA256);
-    g_autofree guchar *buffer = g_malloc(LUC_COPY_BUFFER_SIZE);
+    return luc_image_sha256_with_progress(path, cancellable, NULL, NULL, error);
+}
+
+gchar *
+luc_image_sha256_with_progress(const gchar *path,
+                               GCancellable *cancellable,
+                               LucImageProgressFunc progress,
+                               gpointer user_data,
+                               GError **error)
+{
     struct stat metadata;
+    gchar *digest = NULL;
     int fd = -1;
 
     g_return_val_if_fail(path != NULL, NULL);
     if (!open_regular_source(path, &fd, &metadata, error))
         return NULL;
 
-    while (TRUE) {
-        gsize received = 0;
-        if (!check_cancelled(cancellable, error) ||
-            !read_exact(fd, buffer, LUC_COPY_BUFFER_SIZE, &received, error)) {
-            close(fd);
-            return NULL;
-        }
-        if (received == 0)
-            break;
-        g_checksum_update(checksum, buffer, received);
+    if (!hash_fd_prefix(fd, (guint64)metadata.st_size, cancellable,
+                        progress, user_data, &digest, error)) {
+        close(fd);
+        return NULL;
     }
     close(fd);
-    return g_strdup(g_checksum_get_string(checksum));
+    return digest;
 }
 
 gboolean
@@ -242,6 +245,7 @@ luc_image_write_block_device(const gchar *source_path,
     g_autofree guchar *buffer = g_malloc(LUC_COPY_BUFFER_SIZE);
     g_autofree gchar *source_digest = NULL;
     g_autofree gchar *device_digest = NULL;
+    g_autoptr(GChecksum) write_checksum = g_checksum_new(G_CHECKSUM_SHA256);
     guint64 device_size = 0;
     guint64 completed = 0;
     int source_fd = -1;
@@ -292,26 +296,29 @@ luc_image_write_block_device(const gchar *source_path,
         }
         if (!luc_image_write_all_fd(device_fd, buffer, received, error))
             goto cleanup;
+        g_checksum_update(write_checksum, buffer, received);
         completed += received;
         if (progress != NULL)
             progress(completed, source_metadata.st_size, user_data);
     }
     if (phase_changed != NULL)
         phase_changed(LUC_IMAGE_PHASE_SYNCING, user_data);
+    if (progress != NULL)
+        progress(0, 1, user_data);
     if (fsync(device_fd) != 0) {
         g_set_error(error, G_IO_ERROR, g_io_error_from_errno(errno),
                     "Unable to flush device: %s", g_strerror(errno));
         goto cleanup;
     }
+    if (progress != NULL)
+        progress(1, 1, user_data);
     close(device_fd);
     device_fd = -1;
 
     if (verify) {
         if (phase_changed != NULL)
             phase_changed(LUC_IMAGE_PHASE_VERIFYING, user_data);
-        source_digest = luc_image_sha256(source_path, cancellable, error);
-        if (source_digest == NULL)
-            goto cleanup;
+        source_digest = g_strdup(g_checksum_get_string(write_checksum));
         device_fd = g_open(device_path, O_RDONLY | O_EXCL | O_CLOEXEC | O_NOFOLLOW, 0);
         if (device_fd < 0) {
             g_set_error(error, G_IO_ERROR, g_io_error_from_errno(errno),

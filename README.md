@@ -17,10 +17,11 @@ manual page, reproducible source archives, and install-tested `.deb` and `.rpm`
 artifacts. See
 [ROADMAP.md](ROADMAP.md) for the implementation plan and
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the proposed design.
-M4 is now in progress with read-only ISO9660/UDF inspection for Windows
-installers and complete WIM/ESD payload validation through read-only UDisks2
-loops. Windows media creation remains disabled until the partitioning, copying
-and WIM-splitting gates are complete.
+M4 now includes ISO9660/UDF inspection, complete WIM/ESD validation, and an
+initial Windows writing profile. The application can create a GPT disk with a
+FAT32 EFI System Partition, copy and verify the installer without privileges,
+and automatically split an oversized `install.wim`. BIOS/MBR and NTFS profiles
+remain disabled until they have independent hardware validation.
 
 ## Initial goals
 
@@ -53,7 +54,7 @@ and WIM-splitting gates are complete.
 On Fedora:
 
 ```sh
-sudo dnf install gcc gettext meson ninja-build gtk4-devel libadwaita-devel glib2-devel udisks2 7zip wimlib-utils
+sudo dnf install gcc gettext meson ninja-build gtk4-devel libadwaita-devel glib2-devel udisks2 7zip wimlib-utils util-linux dosfstools
 meson setup _build
 meson compile -C _build
 meson test -C _build --print-errorlogs
@@ -63,7 +64,7 @@ meson test -C _build --print-errorlogs
 On Debian or Ubuntu:
 
 ```sh
-sudo apt install gcc gettext meson ninja-build libgtk-4-dev libadwaita-1-dev libglib2.0-dev udisks2 7zip wimtools
+sudo apt install gcc gettext meson ninja-build libgtk-4-dev libadwaita-1-dev libglib2.0-dev udisks2 7zip wimtools fdisk dosfstools
 meson setup _build
 meson compile -C _build
 meson test -C _build --print-errorlogs
@@ -80,6 +81,12 @@ For a local image checksum (the command only reads the image):
 
 ```sh
 ./_build/src/linuxusbcreator --sha256 /path/to/image.iso
+```
+
+To identify an image as Linux, Windows, or raw/unknown:
+
+```sh
+./_build/src/linuxusbcreator --inspect-image /path/to/image.iso
 ```
 
 To inspect an ISO9660/UDF Windows installer without writing any device:
@@ -108,6 +115,21 @@ USB bus, removability, mount state, swap state, and system-disk status before
 opening the whole block device exclusively. This command destroys all data on
 the target device.
 
+For a supported Windows ISO, the graphical interface identifies Windows and
+offers `UEFI · GPT` or, for x64 images with BIOS boot files, `BIOS · MBR`.
+ARM64 media is restricted to UEFI. The equivalent commands are:
+
+```sh
+linuxusbcreator --write-windows IMAGE DEVICE SERIAL SIZE --firmware uefi
+linuxusbcreator --write-windows IMAGE DEVICE SERIAL SIZE --firmware bios
+```
+
+This command validates the installer before requesting authorization. The
+helper only partitions and formats the confirmed USB; ISO extraction, WIM
+splitting, synchronization, and verification run as the desktop user.
+Every measurable stage reports its own percentage; atomic partitioning,
+formatting, mounting, and synchronization report their binary completion.
+
 GitHub Actions builds on Debian, Ubuntu, Fedora, and openSUSE, produces `.deb`
 and `.rpm` artifacts, and publishes a reproducible source archive plus release
 checksums. Packaging details are in
@@ -123,3 +145,5 @@ exclusive access, and cancellation semantics before and during each operation.
 
 Original code in this repository is intended to be licensed under GPL-3.0-or-later.
 Code adapted from Rufus must retain its original copyright and license notices.
+Windows BIOS boot-record sequences derived from GPL-2.0-or-later `ms-sys` keep
+their provenance in `src/third_party/ms-sys/NOTICE`.

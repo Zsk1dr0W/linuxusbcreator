@@ -2,6 +2,7 @@
 #pragma once
 
 #include <gio/gio.h>
+#include "core/windows-target-plan.h"
 
 G_BEGIN_DECLS
 
@@ -13,6 +14,11 @@ LucWriteOperation *luc_write_operation_new(const gchar *image_path,
                                            const gchar *serial,
                                            guint64 device_size,
                                            gboolean verify);
+LucWriteOperation *luc_write_operation_new_windows(const gchar *image_path,
+                                                   const gchar *device_path,
+                                                   const gchar *serial,
+                                                   guint64 device_size,
+                                                   LucWindowsFirmware firmware);
 void luc_write_operation_start(LucWriteOperation *self);
 void luc_write_operation_cancel(LucWriteOperation *self);
 gboolean luc_write_operation_is_running(LucWriteOperation *self);

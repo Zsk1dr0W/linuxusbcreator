@@ -106,15 +106,33 @@ el USB fue reconocido por el menú de arranque de una laptop real, inició Fedor
 - [x] Repetir la matriz con dos ISO ARM64 reales, una WIM y una ESD.
 - [x] Validar imágenes oficiales vigentes de Microsoft cuya procedencia pueda
   documentarse.
-- [ ] Crear diseños GPT/MBR para objetivos BIOS y UEFI.
-- [ ] Formatear FAT32/NTFS mediante helpers controlados.
-- [ ] Copiar archivos conservando los metadatos relevantes.
-- [ ] Dividir archivos `install.wim` grandes con wimlib.
-- [ ] Validar estructuras de arranque y probar imágenes actuales del instalador
-  de Windows.
+- [x] Crear el diseño GPT con una partición EFI para el perfil UEFI.
+- [x] Añadir un diseño MBR/FAT32 activo y registros de arranque Windows NT6
+  para el perfil BIOS x64, con atribución GPL compatible de `ms-sys`.
+- [x] Formatear FAT32 mediante un helper controlado que revalida el USB.
+- [ ] Añadir NTFS únicamente después de sus pruebas de arranque independientes.
+- [x] Copiar y verificar los archivos como usuario sin privilegios.
+- [x] Dividir archivos `install.wim` grandes con wimlib y verificar el conjunto
+  `.swm`; validado con la ISO oficial Windows 11 25H2 x64.
+- [x] Validar las estructuras de arranque de imágenes actuales de Windows.
+- [x] Identificar en la interfaz imágenes Linux, Windows y raw/desconocidas;
+  mostrar distribución y arquitectura cuando estén disponibles.
+- [x] Ofrecer en Windows los perfiles `UEFI · GPT` y `BIOS · MBR`; ocultar
+  BIOS para ARM64 o imágenes que no incluyan `boot/etfsboot.com`.
+- [x] Mostrar porcentajes por bytes o desde wimlib en las etapas medibles y
+  estados 0/100 reales en las operaciones atómicas.
+- [ ] Probar el medio UEFI/FAT32 creado en hardware real x64 y ARM64.
+- [ ] Probar el medio BIOS/MBR x64 creado en hardware real con CSM/Legacy.
 
-El primer perfil escribible será UEFI/FAT32. BIOS y NTFS no se anunciarán como
-compatibles hasta superar sus propias pruebas de arranque en hardware real.
+Los perfiles UEFI/GPT y BIOS/MBR son escribibles en desarrollo. No se publicará
+la versión 0.5.0 ni se anunciará BIOS como validado hasta superar sus pruebas
+de arranque en hardware real. NTFS queda fuera de esta versión.
+
+Criterio de salida: la interfaz identifica la imagen, ofrece únicamente los
+perfiles compatibles y crea medios UEFI/GPT x64/ARM64 y BIOS/MBR x64 que
+arrancan en hardware real; muestra progreso porcentual por etapa y divide los
+WIM grandes sin procesar contenido ISO/WIM como root ni permitir seleccionar
+el disco del sistema.
 
 ## M5 — Modo ISO y persistencia Linux
 

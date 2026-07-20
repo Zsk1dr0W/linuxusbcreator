@@ -27,6 +27,11 @@ gboolean luc_image_write_all_fd(int fd,
 gchar *luc_image_sha256(const gchar *path,
                         GCancellable *cancellable,
                         GError **error);
+gchar *luc_image_sha256_with_progress(const gchar *path,
+                                      GCancellable *cancellable,
+                                      LucImageProgressFunc progress,
+                                      gpointer user_data,
+                                      GError **error);
 
 gboolean luc_image_copy_regular_file(const gchar *source_path,
                                      const gchar *destination_path,

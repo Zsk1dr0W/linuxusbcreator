@@ -13,6 +13,8 @@ struct _LucWriteOperation {
     gchar *serial;
     guint64 device_size;
     gboolean verify;
+    gboolean windows_mode;
+    LucWindowsFirmware windows_firmware;
     gboolean running;
     gboolean cancelled;
     gboolean process_done;
@@ -45,6 +47,23 @@ append_diagnostic(LucWriteOperation *self, const gchar *message)
     if (self->diagnostics->len > 0)
         g_string_append_c(self->diagnostics, '\n');
     g_string_append(self->diagnostics, message);
+}
+
+LucWriteOperation *
+luc_write_operation_new_windows(const gchar *image_path,
+                                const gchar *device_path,
+                                const gchar *serial,
+                                guint64 device_size,
+                                LucWindowsFirmware firmware)
+{
+    LucWriteOperation *self = luc_write_operation_new(
+        image_path, device_path, serial, device_size, TRUE);
+
+    if (self != NULL)
+        self->windows_mode = TRUE;
+    if (self != NULL)
+        self->windows_firmware = firmware;
+    return self;
 }
 
 static void
@@ -195,6 +214,7 @@ luc_write_operation_start(LucWriteOperation *self)
     g_autoptr(GSubprocessLauncher) launcher = NULL;
     g_autoptr(GError) error = NULL;
     g_autofree gchar *size = NULL;
+    g_autofree gchar *executable = NULL;
     GInputStream *stdout_pipe;
 
     g_return_if_fail(LUC_IS_WRITE_OPERATION(self));
@@ -202,13 +222,23 @@ luc_write_operation_start(LucWriteOperation *self)
     launcher = g_subprocess_launcher_new(G_SUBPROCESS_FLAGS_STDOUT_PIPE |
                                          G_SUBPROCESS_FLAGS_STDERR_MERGE);
     size = g_strdup_printf("%" G_GUINT64_FORMAT, self->device_size);
-    self->process = g_subprocess_launcher_spawn(launcher, &error,
-                                                "pkexec", LUC_HELPER_PATH,
-                                                "write", self->image_path,
-                                                self->device_path, self->serial,
-                                                size, "--verify",
-                                                self->verify ? "yes" : "no",
-                                                NULL);
+    if (self->windows_mode) {
+        executable = g_file_read_link("/proc/self/exe", &error);
+        if (executable != NULL)
+            self->process = g_subprocess_launcher_spawn(
+                launcher, &error, executable, "--write-windows",
+                self->image_path, self->device_path, self->serial, size,
+                "--firmware",
+                luc_windows_firmware_to_string(self->windows_firmware), NULL);
+    } else {
+        self->process = g_subprocess_launcher_spawn(launcher, &error,
+                                                    "pkexec", LUC_HELPER_PATH,
+                                                    "write", self->image_path,
+                                                    self->device_path, self->serial,
+                                                    size, "--verify",
+                                                    self->verify ? "yes" : "no",
+                                                    NULL);
+    }
     if (self->process == NULL) {
         append_diagnostic(self, error->message);
         self->process_done = TRUE;

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: linuxusbcreator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-20 06:33-0400\n"
+"POT-Creation-Date: 2026-07-20 08:28-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,294 +18,417 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
-#: src/app/main.c:22
+#: src/app/main.c:38
 msgid "Usage:"
 msgstr ""
 
-#: src/app/main.c:29
+#: src/app/main.c:47
 msgid "Commands:"
 msgstr ""
 
-#: src/app/main.c:30
+#: src/app/main.c:48
 msgid "Print detected devices and eligibility as JSON"
 msgstr ""
 
-#: src/app/main.c:31
+#: src/app/main.c:49
 msgid "Compute SHA-256 for a regular image file"
 msgstr ""
 
-#: src/app/main.c:32
+#: src/app/main.c:50
+msgid "Identify a Linux, Windows, or raw/unknown image as JSON"
+msgstr ""
+
+#: src/app/main.c:51
 msgid "Inspect a Windows ISO9660/UDF installer as JSON"
 msgstr ""
 
-#: src/app/main.c:33
+#: src/app/main.c:52
 msgid "Mount read-only and validate Windows WIM/ESD payloads"
 msgstr ""
 
-#: src/app/main.c:34
+#: src/app/main.c:53
+msgid "Create verified Windows installation media for UEFI/GPT or BIOS/MBR"
+msgstr ""
+
+#: src/app/main.c:54
 msgid "Write and verify an image on a confirmed USB device"
 msgstr ""
 
-#: src/app/main.c:35
+#: src/app/main.c:55
 msgid "Skip read-back verification (not recommended)"
 msgstr ""
 
-#: src/app/main.c:36
+#: src/app/main.c:56
 msgid "Options:"
 msgstr ""
 
-#: src/app/main.c:37
+#: src/app/main.c:57
 msgid "Show this help"
 msgstr ""
 
-#: src/app/main.c:38
+#: src/app/main.c:58
 msgid "Show program version"
 msgstr ""
 
-#: src/app/window.c:38
+#: src/app/window.c:47
 msgid "ERASE"
 msgstr ""
 
-#: src/app/window.c:52
+#: src/app/window.c:69
 msgid "Available; its partitions will be unmounted before writing"
 msgstr ""
 
-#: src/app/window.c:53
+#: src/app/window.c:70
 msgid "Available for writing"
 msgstr ""
 
-#: src/app/window.c:56
+#: src/app/window.c:73
 msgid "Blocked: the device does not report a stable serial number"
 msgstr ""
 
-#: src/app/window.c:59
+#: src/app/window.c:76
 msgid "Blocked: no media is available"
 msgstr ""
 
-#: src/app/window.c:61
+#: src/app/window.c:78
 msgid "Blocked: no block device is available"
 msgstr ""
 
-#: src/app/window.c:63
+#: src/app/window.c:80
 msgid "Blocked: this is not a USB device"
 msgstr ""
 
-#: src/app/window.c:65
+#: src/app/window.c:82
 msgid "Blocked: the device is not removable"
 msgstr ""
 
-#: src/app/window.c:67
+#: src/app/window.c:84
 msgid "Blocked: contains the current operating system"
 msgstr ""
 
-#: src/app/window.c:69
+#: src/app/window.c:86
 msgid "Blocked: contains active swap"
 msgstr ""
 
-#: src/app/window.c:71
+#: src/app/window.c:88
 msgid "Blocked: the device is read-only"
 msgstr ""
 
-#: src/app/window.c:73
+#: src/app/window.c:90
 msgid "Blocked: unsupported device type"
 msgstr ""
 
-#: src/app/window.c:77
+#: src/app/window.c:94
 msgid "Blocked by the safety policy"
 msgstr ""
 
-#: src/app/window.c:93
+#: src/app/window.c:110
 msgid "no block node"
 msgstr ""
 
-#: src/app/window.c:138 src/app/window.c:554
+#: src/app/window.c:163 src/app/window.c:697
 msgid "The image is larger than the selected device."
 msgstr ""
 
-#: src/app/window.c:188
+#: src/app/window.c:213
 msgid "UDisks2 did not report any storage devices."
 msgstr ""
 
-#: src/app/window.c:191
+#: src/app/window.c:216
 #, c-format
 msgid "%u device detected; %u USB available for writing."
 msgid_plural "%u devices detected; %u USB devices available for writing."
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/app/window.c:249
+#: src/app/window.c:276
 msgid "Select a regular local image file."
 msgstr ""
 
-#: src/app/window.c:262
-msgid "Select a USB device and review verification before continuing."
+#: src/app/window.c:289
+msgid "The Windows image could not be inspected safely."
 msgstr ""
 
-#: src/app/window.c:278
-msgid "Select disk image"
+#: src/app/window.c:302
+msgid "This Windows image is not compatible with the supported FAT32 profiles."
 msgstr ""
 
-#: src/app/window.c:281
-msgid "Select"
+#: src/app/window.c:321
+#, c-format
+msgid "%s · %s · Windows %s · install.wim will be split"
 msgstr ""
 
-#: src/app/window.c:281 src/app/window.c:521
-msgid "Cancel"
+#: src/app/window.c:322
+#, c-format
+msgid "%s · %s · Windows %s"
 msgstr ""
 
-#: src/app/window.c:283
-msgid "Disk images (*.iso, *.img, *.raw)"
+#: src/app/window.c:326 src/app/window.c:327
+msgid "UEFI · GPT"
 msgstr ""
 
-#: src/app/window.c:291
-msgid "All files"
+#: src/app/window.c:326
+msgid "BIOS · MBR"
 msgstr ""
 
 #: src/app/window.c:338
+msgid ""
+"Windows installer detected. Choose UEFI/GPT or BIOS/MBR; files will be "
+"verified."
+msgstr ""
+
+#: src/app/window.c:342
+#, c-format
+msgid "%s · %s · %s · %s"
+msgstr ""
+
+#: src/app/window.c:350
+msgid ""
+"Linux image detected. Hybrid/raw writing with full verification will be used."
+msgstr ""
+
+#: src/app/window.c:353
+#, c-format
+msgid "%s · %s · Raw or unrecognized image"
+msgstr ""
+
+#: src/app/window.c:358
+msgid "Select a USB device and review verification before continuing."
+msgstr ""
+
+#: src/app/window.c:376
+msgid "Select disk image"
+msgstr ""
+
+#: src/app/window.c:379
+msgid "Select"
+msgstr ""
+
+#: src/app/window.c:379 src/app/window.c:659
+msgid "Cancel"
+msgstr ""
+
+#: src/app/window.c:381
+msgid "Disk images (*.iso, *.img, *.raw)"
+msgstr ""
+
+#: src/app/window.c:389
+msgid "All files"
+msgstr ""
+
+#: src/app/window.c:417
 msgid "Computing the image SHA-256…"
 msgstr ""
 
-#: src/app/window.c:344
+#: src/app/window.c:422
+msgid "Validating the Windows installer…"
+msgstr ""
+
+#: src/app/window.c:427
+msgid "Inspecting the selected image…"
+msgstr ""
+
+#: src/app/window.c:434
+msgid "Creating the MBR partition table…"
+msgstr ""
+
+#: src/app/window.c:435
+msgid "Creating the GPT partition table…"
+msgstr ""
+
+#: src/app/window.c:439
+msgid "Formatting the Windows partition as FAT32…"
+msgstr ""
+
+#: src/app/window.c:443
+msgid "Mounting the new Windows target…"
+msgstr ""
+
+#: src/app/window.c:448
+msgid "Copying Windows installation files…"
+msgstr ""
+
+#: src/app/window.c:452
+msgid "Splitting install.wim for FAT32…"
+msgstr ""
+
+#: src/app/window.c:458
 msgid "Writing the image to the USB device…"
 msgstr ""
 
-#: src/app/window.c:347
+#: src/app/window.c:461
 msgid "Synchronizing data with the device…"
 msgstr ""
 
-#: src/app/window.c:352
+#: src/app/window.c:467
 msgid "Verifying the image by reading it back…"
 msgstr ""
 
-#: src/app/window.c:400
+#: src/app/window.c:518
+msgid "Windows media completed and verified"
+msgstr ""
+
+#: src/app/window.c:522
+msgid "The BIOS/MBR Windows installation media was created successfully."
+msgstr ""
+
+#: src/app/window.c:523
+msgid "The UEFI/GPT Windows installation media was created successfully."
+msgstr ""
+
+#: src/app/window.c:526
 msgid "Completed and verified"
 msgstr ""
 
-#: src/app/window.c:402
+#: src/app/window.c:528
 msgid "The image was written and verified successfully."
 msgstr ""
 
-#: src/app/window.c:405
+#: src/app/window.c:531
 msgid "Completed"
 msgstr ""
 
-#: src/app/window.c:407
+#: src/app/window.c:533
 msgid "The image was written without read-back verification."
 msgstr ""
 
-#: src/app/window.c:411
+#: src/app/window.c:537
 msgid "Cancelled"
 msgstr ""
 
-#: src/app/window.c:412
+#: src/app/window.c:538
 msgid "The operation was cancelled."
 msgstr ""
 
-#: src/app/window.c:414
+#: src/app/window.c:540
 msgid "Failed"
 msgstr ""
 
-#: src/app/window.c:418
+#: src/app/window.c:544
 msgid "Writing failed without additional information."
 msgstr ""
 
-#: src/app/window.c:445
+#: src/app/window.c:576
 msgid "Waiting for authorization…"
 msgstr ""
 
-#: src/app/window.c:447
+#: src/app/window.c:578
 msgid "Authorize the limited Linux USB Creator helper."
 msgstr ""
 
-#: src/app/window.c:484
+#: src/app/window.c:615
 msgid "This operation will destroy all data on the USB device"
 msgstr ""
 
-#: src/app/window.c:496
+#: src/app/window.c:627
 msgid "Confirm destructive write"
 msgstr ""
 
-#: src/app/window.c:508
+#: src/app/window.c:642
+#, c-format
+msgid ""
+"Target: %s (%s, %s)\n"
+"Image: %s\n"
+"Mode: Windows BIOS/MBR · FAT32"
+msgstr ""
+
+#: src/app/window.c:643
+#, c-format
+msgid ""
+"Target: %s (%s, %s)\n"
+"Image: %s\n"
+"Mode: Windows UEFI/GPT · FAT32"
+msgstr ""
+
+#: src/app/window.c:647
 #, c-format
 msgid ""
 "Target: %s (%s, %s)\n"
 "Image: %s"
 msgstr ""
 
-#: src/app/window.c:515
+#: src/app/window.c:653
 msgid "Type ERASE to confirm:"
 msgstr ""
 
-#: src/app/window.c:522
+#: src/app/window.c:660
 msgid "Erase and write"
 msgstr ""
 
-#: src/app/window.c:548
+#: src/app/window.c:687
 msgid "The image no longer exists or is no longer a regular file."
 msgstr ""
 
-#: src/app/window.c:569
+#: src/app/window.c:712
 msgid "Cancelling safely…"
 msgstr ""
 
-#: src/app/window.c:641
+#: src/app/window.c:785
 msgid "Linux USB Creator"
 msgstr ""
 
-#: src/app/window.c:650
+#: src/app/window.c:794
 msgid "1. Select an image"
 msgstr ""
 
-#: src/app/window.c:656
+#: src/app/window.c:800
 msgid "ISO/raw image"
 msgstr ""
 
-#: src/app/window.c:657
+#: src/app/window.c:801
 msgid "No image selected"
 msgstr ""
 
-#: src/app/window.c:658
+#: src/app/window.c:802
 msgid "Choose…"
 msgstr ""
 
-#: src/app/window.c:663
+#: src/app/window.c:808
 msgid "Full verification"
 msgstr ""
 
-#: src/app/window.c:665
+#: src/app/window.c:810
 msgid "Read the written image back and compare SHA-256"
 msgstr ""
 
-#: src/app/window.c:674
+#: src/app/window.c:819
+msgid "Windows partition scheme"
+msgstr ""
+
+#: src/app/window.c:821
+msgid "Choose the firmware used by the target computer"
+msgstr ""
+
+#: src/app/window.c:827
 msgid "2. Select the target USB device"
 msgstr ""
 
-#: src/app/window.c:675
+#: src/app/window.c:828
 msgid "Scanning UDisks2…"
 msgstr ""
 
-#: src/app/window.c:686
+#: src/app/window.c:839
 msgid "3. Confirm and write"
 msgstr ""
 
-#: src/app/window.c:687
+#: src/app/window.c:840
 msgid ""
 "The system SSD and ineligible devices remain blocked. Writing requires "
 "explicit confirmation and Polkit authorization."
 msgstr ""
 
-#: src/app/window.c:694
+#: src/app/window.c:847
 msgid "Ready"
 msgstr ""
 
-#: src/app/window.c:697
+#: src/app/window.c:850
 msgid "Choose an image and an available USB device."
 msgstr ""
 
-#: src/app/window.c:702
+#: src/app/window.c:855
 msgid "Cancel operation"
 msgstr ""
 
-#: src/app/window.c:704
+#: src/app/window.c:857
 msgid "Write image…"
 msgstr ""

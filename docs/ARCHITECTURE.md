@@ -33,6 +33,15 @@ Para medios de Windows, la inspección y extracción ISO/UDF y la división WIM 
 ejecutan sin privilegios. El helper conserva únicamente el particionado y
 formato de un USB revalidado mediante un plan cerrado. Véase ADR 0004.
 
+El perfil UEFI crea GPT y una partición EFI FAT32. El perfil BIOS x64 crea una
+tabla DOS, una partición FAT32 activa y registros MBR/PBR NT6. El helper solo
+puede ejecutar esos dos planes cerrados mediante copias root-owned de `sfdisk` y
+`mkfs.fat`; no acepta tablas, tipos, etiquetas, rutas de herramientas ni
+opciones suministradas por el cliente. Al terminar devuelve únicamente el nodo
+de la partición. La aplicación vuelve al usuario activo, monta origen y destino
+mediante UDisks2, copia con `O_NOFOLLOW`, divide WIM si corresponde, sincroniza,
+verifica los SWM con wimlib y compara el resto de los archivos byte a byte.
+
 ## Proposed source tree
 
 ```text
@@ -55,6 +64,14 @@ tests/fixtures/        image and UDisks2 metadata fixtures
 discovered -> eligible -> selected -> confirmed -> authorized
      -> identity-revalidated -> exclusively-opened -> writing
      -> flushed -> verified -> completed
+```
+
+Para Windows, la transición destructiva equivalente es:
+
+```text
+validated-iso -> confirmed -> authorized -> identity-revalidated
+    -> unmounted -> fixed-GPT-or-MBR -> fixed-FAT32 -> user-mounted
+    -> copied/split -> flushed -> verified -> unmounted -> completed
 ```
 
 Any device removal, identity mismatch, mount-state change, or helper restart

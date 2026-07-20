@@ -30,9 +30,7 @@ archivos locales no conservaban una URL de origen como atributo extendido; por
 eso la evidencia reproducible se vincula a los nombres, tamaños y SHA-256 de
 la tabla. La variante x64 contiene 1.064 archivos y la ARM64, 1.050. Sus dos
 `install.wim` superan el límite de 4.294.967.295 bytes para un archivo FAT32,
-por lo que el inspector activó correctamente `requires_wim_split`. Esta prueba
-valida la detección de la necesidad de división, no la división ni la creación
-del medio.
+por lo que el inspector activó correctamente `requires_wim_split`.
 
 La validación se ejecutó con 7-Zip 26.02 y wimlib 1.14.5. Cada ISO se montó como
 UDF mediante un loop de solo lectura; wimlib verificó los metadatos y datos de
@@ -52,3 +50,45 @@ Los resultados se obtuvieron para las seis imágenes x64 y ARM64 de la tabla.
 Después de cada prueba, la aplicación desmontó el sistema de archivos y el
 kernel liberó el loop mediante `autoclear`. Se confirmó que no quedaron loops
 con backing ni montajes activos. Estas pruebas todavía no crean un USB Windows.
+
+## Ensayo del canal UEFI/FAT32
+
+El motor M4 procesó `Win11_25H2_Spanish_x64_v2.iso` completo hacia un destino
+temporal no privilegiado. Copió 1.063 archivos ordinarios, omitió el WIM
+sobredimensionado y dividió `sources/install.wim` en:
+
+| Fragmento | Tamaño |
+|---|---:|
+| `install.swm` | 3.430.030.698 bytes |
+| `install2.swm` | 3.965.791.374 bytes |
+| `install3.swm` | 97.499.042 bytes |
+
+Todos los fragmentos quedaron bajo el límite FAT32. wimlib verificó el conjunto
+completo de once índices usando los tres SWM como referencias; después el motor
+sincronizó el destino y comparó byte a byte todos los archivos no divididos,
+incluidos `efi/boot/bootx64.efi` y `sources/boot.wim`. El ensayo produjo 7,9 GiB
+y terminó sin loops o montajes UDF residuales. El diseño fijo de partición se
+probó además sobre un disco temporal de 1 GiB: GPT, inicio en sector 2048 y una
+partición del tipo EFI System.
+
+El flujo se repitió después sobre el Kingston DataTraveler de
+30.995.907.072 bytes. El helper revalidó identidad y política, creó GPT y una
+partición EFI FAT32 limpia. La copia, división, `fsync` y verificación
+terminaron correctamente. El destino contenía 1.066 archivos regulares,
+`efi/boot/bootx64.efi` (3.008.968 bytes), `sources/boot.wim` (629.671.774
+bytes) y los tres SWM de la tabla; no quedó `install.wim`. Falta validar el
+arranque de este medio Windows en hardware real.
+
+## Ensayo del canal BIOS/MBR
+
+La misma ISO oficial x64 se escribió dos veces con el perfil BIOS/MBR sobre el
+Kingston. El ensayo final creó una tabla DOS, partición FAT32 tipo `0x0c`
+iniciada en el sector 2048 y marcada `bootable`. Se instalaron registros de
+arranque Windows 7/NT6 compatibles en el MBR, PBR principal y copia de respaldo;
+las tres firmas `55 aa` se comprobaron por lectura posterior.
+
+La aplicación informó porcentajes reales durante validación WIM, copia,
+división WIM, verificación de SWM y comparación de archivos. Las operaciones
+atómicas informaron 0/100. `fsck.fat -n` terminó limpio con 1.169 archivos y
+513.493 de 1.890.851 clústeres usados. La creación BIOS queda validada; todavía
+falta arrancar el USB en hardware x64 con Legacy/CSM.

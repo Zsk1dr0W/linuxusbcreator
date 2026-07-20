@@ -26,3 +26,14 @@
 - Durable writes, clear cancellation semantics, and read-back verification.
 - Structured audit log without secrets.
 
+## Controles del canal Windows
+
+- ISO/UDF y WIM/ESD se inspeccionan y procesan sin privilegios.
+- Se rechazan rutas absolutas, `..`, enlaces y colisiones que FAT no distingue.
+- El helper acepta solo los perfiles cerrados UEFI/GPT/FAT32 y BIOS/MBR/FAT32,
+  herramientas de rutas
+  confiables propiedad de root e identidad completa del USB.
+- El montaje de destino y la copia pertenecen al usuario activo; cada archivo
+  se abre sin seguir enlaces y se sincroniza antes de verificarlo.
+- Un `install.wim` grande se sustituye por SWM menores de 4 GiB y wimlib valida
+  el conjunto completo con todos sus fragmentos como referencias.

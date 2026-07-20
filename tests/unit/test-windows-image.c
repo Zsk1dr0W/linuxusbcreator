@@ -10,6 +10,7 @@ static const gchar *valid_windows_listing =
     "----------\n"
     "Path = bootmgr\nSize = 400000\nAttributes = A\n\n"
     "Path = boot/bcd\nSize = 20000\nAttributes = A\n\n"
+    "Path = boot/etfsboot.com\nSize = 4096\nAttributes = A\n\n"
     "Path = efi/boot/bootx64.efi\nSize = 1000000\nAttributes = A\n\n"
     "Path = sources/boot.wim\nSize = 500000000\nAttributes = A\n\n"
     "Path = sources/install.wim\nSize = 5000000000\nAttributes = A\n";
@@ -35,7 +36,7 @@ test_valid_udf_requires_split(void)
     g_assert_cmpuint(info->install_size, ==, G_GUINT64_CONSTANT(5000000000));
     g_assert_true(info->requires_wim_split);
     g_assert_true(info->fat32_compatible);
-    g_assert_cmpuint(info->file_count, ==, 5);
+    g_assert_cmpuint(info->file_count, ==, 6);
 }
 
 static void

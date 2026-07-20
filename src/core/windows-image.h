@@ -35,6 +35,7 @@ typedef struct {
     gboolean has_install_esd;
     gboolean has_bootmgr;
     gboolean has_boot_bcd;
+    gboolean has_bios_boot_image;
     gboolean supports_bios;
     gboolean supports_uefi_x64;
     gboolean supports_uefi_arm64;
@@ -44,6 +45,10 @@ typedef struct {
     gboolean fat32_compatible;
     gboolean is_windows_installer;
 } LucWindowsImageInfo;
+
+typedef void (*LucWindowsImageProgressFunc)(guint64 completed,
+                                            guint64 total,
+                                            gpointer user_data);
 
 void luc_windows_image_info_free(LucWindowsImageInfo *info);
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(LucWindowsImageInfo, luc_windows_image_info_free)
@@ -63,5 +68,12 @@ gboolean luc_windows_image_verify_payloads(const gchar *mount_path,
                                            const LucWindowsImageInfo *info,
                                            GCancellable *cancellable,
                                            GError **error);
+gboolean luc_windows_image_verify_payloads_with_progress(
+    const gchar *mount_path,
+    const LucWindowsImageInfo *info,
+    GCancellable *cancellable,
+    LucWindowsImageProgressFunc progress_func,
+    gpointer user_data,
+    GError **error);
 
 G_END_DECLS

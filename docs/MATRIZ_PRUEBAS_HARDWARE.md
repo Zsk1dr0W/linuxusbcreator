@@ -45,3 +45,24 @@ sistema reconoció `/dev/sda1` como `iso9660`, con etiqueta
 Esta prueba valida el recorrido completo desde la creación y verificación del
 medio en la interfaz hasta el inicio del instalador en hardware real. No se
 completó una instalación de Fedora sobre el disco de la laptop.
+
+## M4 — Creación de medio Windows UEFI/GPT
+
+| Fecha | Dispositivo | Imagen | Resultado |
+|---|---|---|---|
+| 2026-07-20 | Kingston DataTraveler 3.0, serie `E0D55E6B6367172049400134` | Windows 11 25H2 Spanish x64 v2 oficial | GPT/EFI/FAT32, copia, división WIM en tres SWM, sincronización y verificación completas |
+
+`fsck.fat -n` informó un sistema FAT32 limpio. Se verificaron los registros de
+GPT, la partición EFI, 1.066 archivos regulares y los payloads de arranque. Esta
+fila acredita la creación del medio, no todavía su arranque físico.
+
+## M4 — Creación de medio Windows BIOS/MBR
+
+| Fecha | Dispositivo | Imagen | Resultado |
+|---|---|---|---|
+| 2026-07-20 | Kingston DataTraveler 3.0, serie `E0D55E6B6367172049400134` | Windows 11 25H2 Spanish x64 v2 oficial | MBR/FAT32 activo, registros MBR/PBR NT6, copia, división WIM, sincronización y verificación completas |
+
+Se verificaron tabla DOS, tipo `0x0c`, bandera activa y firmas `55 aa` del MBR,
+PBR principal y respaldo. `fsck.fat -n` terminó limpio. Falta comprobar este
+medio en un equipo con arranque Legacy/CSM antes de marcar BIOS como validado
+en hardware.

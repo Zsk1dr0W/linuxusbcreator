@@ -1,0 +1,10 @@
+Boot-record byte sequences derived from ms-sys 2.7.1
+=====================================================
+
+Upstream: https://github.com/jpz4085/ms-sys
+Revision: 13c892034fbb6e9bb4302c977e7f88b59df4a0fe
+Copyright: Copyright (C) Henrik Carlqvist and ms-sys contributors
+License: GNU General Public License version 2 or, at your option, any later version
+
+Linux USB Creator uses only the Windows 7 MBR and Windows NT6 FAT32 boot
+record sequences. The surrounding integration code is GPL-3.0-or-later.

@@ -6,6 +6,14 @@ device_test = executable(
 )
 test('device-policy', device_test)
 
+image_classifier_test = executable(
+  'test-image-classifier',
+  files('unit/test-image-classifier.c'),
+  include_directories: include_directories('../src'),
+  dependencies: [core_dep],
+)
+test('image-classifier', image_classifier_test)
+
 image_test = executable(
   'test-image-writer',
   files('unit/test-image-writer.c'),
@@ -45,6 +53,30 @@ windows_image_test = executable(
   dependencies: [core_dep],
 )
 test('windows-image', windows_image_test)
+
+windows_media_test = executable(
+  'test-windows-media',
+  files('unit/test-windows-media.c'),
+  include_directories: include_directories('../src'),
+  dependencies: [core_dep],
+)
+test('windows-media', windows_media_test)
+
+windows_target_plan_test = executable(
+  'test-windows-target-plan',
+  files('unit/test-windows-target-plan.c'),
+  include_directories: include_directories('../src'),
+  dependencies: [core_dep],
+)
+test('windows-target-plan', windows_target_plan_test)
+
+windows_bios_boot_test = executable(
+  'test-windows-bios-boot',
+  files('unit/test-windows-bios-boot.c'),
+  include_directories: include_directories('../src'),
+  dependencies: [core_dep],
+)
+test('windows-bios-boot', windows_bios_boot_test)
 
 test('helper-rejects-invalid-invocation', helper_exe, should_fail: true)
 

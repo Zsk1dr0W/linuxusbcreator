@@ -1,8 +1,8 @@
 Name:           linuxusbcreator
-Version:        0.4.0
+Version:        0.5.0
 Release:        1%{?dist}
 Summary:        Native Linux utility for creating bootable USB media
-License:        GPL-3.0-or-later
+License:        GPL-3.0-or-later AND GPL-2.0-or-later
 URL:            https://github.com/Zsk1dr0W/linuxusbcreator
 Source0:        %{name}-%{version}.tar.xz
 
@@ -19,10 +19,14 @@ Requires:       udisks2
 Requires:       polkit
 Requires:       /usr/bin/7z
 Requires:       /usr/bin/wimlib-imagex
+Requires:       /usr/bin/sfdisk
+Requires:       /usr/bin/mkfs.fat
 
 %description
 Linux USB Creator is a native Linux utility for safely inspecting removable USB
-devices and writing bootable raw images with complete read-back verification.
+devices, writing verified raw images, and creating UEFI/GPT or BIOS/MBR
+Windows installation media with image detection, per-stage progress and
+automatic WIM splitting.
 
 %prep
 %autosetup
@@ -39,7 +43,7 @@ devices and writing bootable raw images with complete read-back verification.
 
 %files
 %license LICENSE
-%doc README.md ROADMAP.md
+%doc README.md ROADMAP.md src/third_party/ms-sys/NOTICE
 %{_bindir}/linuxusbcreator
 %{_libexecdir}/linuxusbcreator-helper
 %{_datadir}/applications/io.github.zsk1dr0w.LinuxUsbCreator.desktop
@@ -50,6 +54,9 @@ devices and writing bootable raw images with complete read-back verification.
 %{_mandir}/man1/linuxusbcreator.1*
 
 %changelog
+* Mon Jul 20 2026 Víctor Díaz Gonzalez <106137683+Zsk1dr0W@users.noreply.github.com> - 0.5.0-1
+- Add UEFI/GPT and BIOS/MBR Windows media creation with per-stage progress
+
 * Mon Jul 20 2026 Víctor Díaz Gonzalez <106137683+Zsk1dr0W@users.noreply.github.com> - 0.4.0-1
 - Add the functional graphical image writing workflow
 

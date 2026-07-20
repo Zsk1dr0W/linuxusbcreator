@@ -78,13 +78,13 @@ jobs:
       - name: Create source archive
         run: |
           mkdir -p rpmbuild/BUILD rpmbuild/BUILDROOT rpmbuild/RPMS rpmbuild/SOURCES rpmbuild/SPECS rpmbuild/SRPMS
-          tar --exclude=.git --exclude=rpmbuild --transform='s,^,linuxusbcreator-0.4.0/,' -cJf rpmbuild/SOURCES/linuxusbcreator-0.4.0.tar.xz .
+          tar --exclude=.git --exclude=rpmbuild --transform='s,^,linuxusbcreator-0.5.0/,' -cJf rpmbuild/SOURCES/linuxusbcreator-0.5.0.tar.xz .
           cp packaging/rpm/linuxusbcreator.spec rpmbuild/SPECS/
       - name: Build RPM
         run: rpmbuild --define "_topdir $GITHUB_WORKSPACE/rpmbuild" -ba rpmbuild/SPECS/linuxusbcreator.spec
       - name: Install and remove RPM
         run: |
-          dnf install --assumeyes rpmbuild/RPMS/x86_64/linuxusbcreator-0.4.0-1.fc42.x86_64.rpm
+          dnf install --assumeyes rpmbuild/RPMS/x86_64/linuxusbcreator-0.5.0-1.fc42.x86_64.rpm
           linuxusbcreator --version
           test -x /usr/libexec/linuxusbcreator-helper
           rpm -q linuxusbcreator
@@ -145,15 +145,15 @@ jobs:
           fetch-depth: 0
       - name: Build reproducible source archive
         run: |
-          ./scripts/create-source-tarball.sh 0.4.0 dist-a
-          ./scripts/create-source-tarball.sh 0.4.0 dist-b
-          cmp dist-a/linuxusbcreator-0.4.0.tar.xz dist-b/linuxusbcreator-0.4.0.tar.xz
+          ./scripts/create-source-tarball.sh 0.5.0 dist-a
+          ./scripts/create-source-tarball.sh 0.5.0 dist-b
+          cmp dist-a/linuxusbcreator-0.5.0.tar.xz dist-b/linuxusbcreator-0.5.0.tar.xz
       - uses: actions/upload-artifact@v4
         with:
           name: source-dist
           path: |
-            dist-a/linuxusbcreator-0.4.0.tar.xz
-            dist-a/linuxusbcreator-0.4.0.tar.xz.sha256
+            dist-a/linuxusbcreator-0.5.0.tar.xz
+            dist-a/linuxusbcreator-0.5.0.tar.xz.sha256
           if-no-files-found: error
 
   release-manifest:

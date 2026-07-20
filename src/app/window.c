@@ -7,6 +7,11 @@
 
 #include "app/write-operation.h"
 #include "core/helper-protocol.h"
+#include "core/image-classifier.h"
+#include "core/windows-image.h"
+#include "core/windows-target-plan.h"
+
+#define WINDOWS_FILESYSTEM_OVERHEAD (256U * 1024U * 1024U)
 
 struct _LucWindow {
     AdwApplicationWindow parent_instance;
@@ -16,17 +21,21 @@ struct _LucWindow {
     AdwActionRow *image_row;
     GtkButton *image_button;
     GtkSwitch *verify_switch;
+    GtkWidget *verify_row;
+    AdwComboRow *firmware_row;
     GtkButton *write_button;
     GtkButton *cancel_button;
     GtkProgressBar *progress;
     GtkLabel *operation_status;
     gchar *image_path;
     guint64 image_size;
+    LucWindowsImageInfo *windows_info;
+    LucImageClassification *classification;
     LucDevice *selected_device;
     LucWriteOperation *operation;
-    guint pulse_source;
     gboolean operation_active;
     gboolean operation_verify;
+    gboolean operation_windows;
     gboolean refreshing;
 };
 
@@ -36,6 +45,14 @@ static const gchar *
 confirmation_text(void)
 {
     return _("ERASE");
+}
+
+static LucWindowsFirmware
+selected_windows_firmware(LucWindow *self)
+{
+    return adw_combo_row_get_selected(self->firmware_row) == 1
+               ? LUC_WINDOWS_FIRMWARE_BIOS
+               : LUC_WINDOWS_FIRMWARE_UEFI;
 }
 
 static gchar *
@@ -121,19 +138,27 @@ set_operation_status(LucWindow *self, const gchar *message, const gchar *style)
 static void
 update_actions(LucWindow *self)
 {
+    guint64 required_size = self->image_size;
+
+    if (self->windows_info != NULL &&
+        self->windows_info->content_size <=
+            G_MAXUINT64 - WINDOWS_FILESYSTEM_OVERHEAD)
+        required_size = self->windows_info->content_size +
+                        WINDOWS_FILESYSTEM_OVERHEAD;
     gboolean ready = !self->operation_active &&
                      self->image_path != NULL &&
                      self->selected_device != NULL &&
                      self->image_size > 0 &&
-                     self->image_size <= self->selected_device->size;
+                     required_size <= self->selected_device->size;
 
     gtk_widget_set_sensitive(GTK_WIDGET(self->write_button), ready);
     gtk_widget_set_sensitive(GTK_WIDGET(self->image_button), !self->operation_active);
     gtk_widget_set_sensitive(GTK_WIDGET(self->verify_switch), !self->operation_active);
+    gtk_widget_set_sensitive(GTK_WIDGET(self->firmware_row), !self->operation_active);
     gtk_widget_set_sensitive(GTK_WIDGET(self->list), !self->operation_active);
     if (!self->operation_active && self->image_path != NULL &&
         self->selected_device != NULL &&
-        self->image_size > self->selected_device->size) {
+        required_size > self->selected_device->size) {
         set_operation_status(self,
                              _("The image is larger than the selected device."),
                              "error");
@@ -232,6 +257,8 @@ on_file_selected(GtkNativeDialog *dialog, gint response, LucWindow *self)
     g_autofree gchar *path = NULL;
     g_autofree gchar *size = NULL;
     g_autofree gchar *subtitle = NULL;
+    g_autoptr(LucWindowsImageInfo) windows_info = NULL;
+    g_autoptr(LucImageClassification) classification = NULL;
 
     if (response != GTK_RESPONSE_ACCEPT)
         goto done;
@@ -251,16 +278,87 @@ on_file_selected(GtkNativeDialog *dialog, gint response, LucWindow *self)
         goto done;
     }
 
+    classification = luc_image_classify(path, NULL, NULL);
+    if (classification != NULL &&
+        classification->kind == LUC_IMAGE_KIND_WINDOWS_ISO)
+        windows_info = luc_windows_image_inspect(path, NULL, NULL);
+    if (classification != NULL &&
+        classification->kind == LUC_IMAGE_KIND_WINDOWS_ISO &&
+        windows_info == NULL) {
+        set_operation_status(self,
+                             _("The Windows image could not be inspected safely."),
+                             "error");
+        goto done;
+    }
+    if (windows_info != NULL &&
+        (windows_info->has_boot_wim ||
+         windows_info->install_payload != LUC_WINDOWS_INSTALL_PAYLOAD_NONE) &&
+        (!windows_info->is_windows_installer ||
+         !windows_info->fat32_compatible ||
+         (!windows_info->supports_uefi_x64 &&
+          !windows_info->supports_uefi_arm64))) {
+        set_operation_status(
+            self,
+            _("This Windows image is not compatible with the supported FAT32 profiles."),
+            "error");
+        goto done;
+    }
+
     g_free(self->image_path);
     self->image_path = g_steal_pointer(&path);
     self->image_size = g_file_info_get_size(info);
+    g_clear_pointer(&self->windows_info, luc_windows_image_info_free);
+    g_clear_pointer(&self->classification, luc_image_classification_free);
+    self->classification = g_steal_pointer(&classification);
+    if (windows_info != NULL && windows_info->is_windows_installer)
+        self->windows_info = g_steal_pointer(&windows_info);
     size = format_size(self->image_size);
-    subtitle = g_strdup_printf("%s · %s",
-                               g_file_info_get_display_name(info), size);
+    if (self->windows_info != NULL) {
+        const gchar *architecture = self->windows_info->supports_uefi_arm64
+                                        ? "ARM64" : "x64";
+        subtitle = g_strdup_printf(
+            self->windows_info->requires_wim_split
+                ? _("%s · %s · Windows %s · install.wim will be split")
+                : _("%s · %s · Windows %s"),
+            g_file_info_get_display_name(info), size, architecture);
+        gtk_widget_set_visible(self->verify_row, FALSE);
+        {
+            const gchar *profiles_both[] = {_("UEFI · GPT"), _("BIOS · MBR"), NULL};
+            const gchar *profiles_uefi[] = {_("UEFI · GPT"), NULL};
+            GtkStringList *profiles = gtk_string_list_new(
+                self->windows_info->supports_bios ? profiles_both : profiles_uefi);
+
+            adw_combo_row_set_model(self->firmware_row, G_LIST_MODEL(profiles));
+            adw_combo_row_set_selected(self->firmware_row, 0);
+            g_object_unref(profiles);
+            gtk_widget_set_visible(GTK_WIDGET(self->firmware_row), TRUE);
+        }
+        set_operation_status(
+            self,
+            _("Windows installer detected. Choose UEFI/GPT or BIOS/MBR; files will be verified."),
+            NULL);
+    } else if (self->classification != NULL &&
+               self->classification->kind == LUC_IMAGE_KIND_LINUX_ISO) {
+        subtitle = g_strdup_printf(_("%s · %s · %s · %s"),
+                                   g_file_info_get_display_name(info), size,
+                                   self->classification->distribution,
+                                   self->classification->architecture);
+        gtk_widget_set_visible(self->verify_row, TRUE);
+        gtk_widget_set_visible(GTK_WIDGET(self->firmware_row), FALSE);
+        set_operation_status(
+            self,
+            _("Linux image detected. Hybrid/raw writing with full verification will be used."),
+            NULL);
+    } else {
+        subtitle = g_strdup_printf(_("%s · %s · Raw or unrecognized image"),
+                                   g_file_info_get_display_name(info), size);
+        gtk_widget_set_visible(self->verify_row, TRUE);
+        gtk_widget_set_visible(GTK_WIDGET(self->firmware_row), FALSE);
+        set_operation_status(self,
+                             _("Select a USB device and review verification before continuing."),
+                             NULL);
+    }
     adw_action_row_set_subtitle(self->image_row, subtitle);
-    set_operation_status(self,
-                         _("Select a USB device and review verification before continuing."),
-                         NULL);
     update_actions(self);
 
 done:
@@ -304,29 +402,10 @@ on_choose_image(GtkButton *button, LucWindow *self)
     choose_image(self);
 }
 
-static gboolean
-pulse_progress(gpointer user_data)
-{
-    LucWindow *self = user_data;
-    gtk_progress_bar_pulse(self->progress);
-    return G_SOURCE_CONTINUE;
-}
-
-static void
-start_pulsing(LucWindow *self)
-{
-    if (self->pulse_source == 0)
-        self->pulse_source = g_timeout_add(120, pulse_progress, self);
-    gtk_progress_bar_set_text(self->progress, NULL);
-}
-
 static void
 stop_pulsing(LucWindow *self)
 {
-    if (self->pulse_source != 0) {
-        g_source_remove(self->pulse_source);
-        self->pulse_source = 0;
-    }
+    (void)self;
 }
 
 static void
@@ -336,7 +415,42 @@ on_operation_phase(LucWriteOperation *operation, gint phase, LucWindow *self)
     switch ((LucHelperPhase)phase) {
     case LUC_HELPER_PHASE_HASHING:
         set_operation_status(self, _("Computing the image SHA-256…"), NULL);
-        start_pulsing(self);
+        gtk_progress_bar_set_fraction(self->progress, 0.0);
+        stop_pulsing(self);
+        break;
+    case LUC_HELPER_PHASE_VALIDATING:
+        set_operation_status(self, _("Validating the Windows installer…"), NULL);
+        gtk_progress_bar_set_fraction(self->progress, 0.0);
+        stop_pulsing(self);
+        break;
+    case LUC_HELPER_PHASE_INSPECTING:
+        set_operation_status(self, _("Inspecting the selected image…"), NULL);
+        gtk_progress_bar_set_fraction(self->progress, 0.0);
+        stop_pulsing(self);
+        break;
+    case LUC_HELPER_PHASE_PARTITIONING:
+        set_operation_status(self,
+            selected_windows_firmware(self) == LUC_WINDOWS_FIRMWARE_BIOS
+                ? _("Creating the MBR partition table…")
+                : _("Creating the GPT partition table…"), NULL);
+        gtk_progress_bar_set_fraction(self->progress, 0.0);
+        break;
+    case LUC_HELPER_PHASE_FORMATTING:
+        set_operation_status(self, _("Formatting the Windows partition as FAT32…"), NULL);
+        gtk_progress_bar_set_fraction(self->progress, 0.0);
+        break;
+    case LUC_HELPER_PHASE_MOUNTING:
+        set_operation_status(self, _("Mounting the new Windows target…"), NULL);
+        gtk_progress_bar_set_fraction(self->progress, 0.0);
+        break;
+    case LUC_HELPER_PHASE_COPYING:
+        gtk_progress_bar_set_fraction(self->progress, 0.0);
+        set_operation_status(self, _("Copying Windows installation files…"), NULL);
+        stop_pulsing(self);
+        break;
+    case LUC_HELPER_PHASE_SPLITTING:
+        set_operation_status(self, _("Splitting install.wim for FAT32…"), NULL);
+        gtk_progress_bar_set_fraction(self->progress, 0.0);
         break;
     case LUC_HELPER_PHASE_WRITING:
         stop_pulsing(self);
@@ -345,12 +459,12 @@ on_operation_phase(LucWriteOperation *operation, gint phase, LucWindow *self)
         break;
     case LUC_HELPER_PHASE_SYNCING:
         set_operation_status(self, _("Synchronizing data with the device…"), NULL);
-        start_pulsing(self);
+        gtk_progress_bar_set_fraction(self->progress, 0.0);
+        stop_pulsing(self);
         break;
     case LUC_HELPER_PHASE_VERIFYING:
         gtk_progress_bar_set_fraction(self->progress, 0.0);
         set_operation_status(self, _("Verifying the image by reading it back…"), NULL);
-        start_pulsing(self);
         break;
     case LUC_HELPER_PHASE_NONE:
     default:
@@ -375,10 +489,14 @@ on_operation_progress(LucWriteOperation *operation,
     stop_pulsing(self);
     fraction = (gdouble)completed / (gdouble)total;
     gtk_progress_bar_set_fraction(self->progress, fraction);
-    done_size = format_size(completed);
-    total_size = format_size(total);
-    text = g_strdup_printf("%s / %s · %.0f%%", done_size, total_size,
-                           fraction * 100.0);
+    if (total == 1) {
+        text = g_strdup_printf("%.0f%%", fraction * 100.0);
+    } else {
+        done_size = format_size(completed);
+        total_size = format_size(total);
+        text = g_strdup_printf("%s / %s · %.0f%%", done_size, total_size,
+                               fraction * 100.0);
+    }
     gtk_progress_bar_set_text(self->progress, text);
 }
 
@@ -396,7 +514,15 @@ on_operation_finished(LucWriteOperation *operation,
     gtk_widget_set_visible(GTK_WIDGET(self->write_button), TRUE);
     if (success) {
         gtk_progress_bar_set_fraction(self->progress, 1.0);
-        if (self->operation_verify) {
+        if (self->operation_windows) {
+            gtk_progress_bar_set_text(self->progress, _("Windows media completed and verified"));
+            set_operation_status(
+                self,
+                selected_windows_firmware(self) == LUC_WINDOWS_FIRMWARE_BIOS
+                    ? _("The BIOS/MBR Windows installation media was created successfully.")
+                    : _("The UEFI/GPT Windows installation media was created successfully."),
+                "success");
+        } else if (self->operation_verify) {
             gtk_progress_bar_set_text(self->progress, _("Completed and verified"));
             set_operation_status(self,
                                  _("The image was written and verified successfully."),
@@ -429,11 +555,16 @@ start_write(LucWindow *self)
     gboolean verify = gtk_switch_get_active(self->verify_switch);
 
     self->operation_verify = verify;
-    self->operation = luc_write_operation_new(self->image_path,
-                                              self->selected_device->device,
-                                              self->selected_device->serial,
-                                              self->selected_device->size,
-                                              verify);
+    self->operation_windows = self->windows_info != NULL;
+    if (self->operation_windows)
+        self->operation = luc_write_operation_new_windows(
+            self->image_path, self->selected_device->device,
+            self->selected_device->serial, self->selected_device->size,
+            selected_windows_firmware(self));
+    else
+        self->operation = luc_write_operation_new(
+            self->image_path, self->selected_device->device,
+            self->selected_device->serial, self->selected_device->size, verify);
     g_signal_connect(self->operation, "phase-changed",
                      G_CALLBACK(on_operation_phase), self);
     g_signal_connect(self->operation, "progress",
@@ -505,9 +636,16 @@ show_confirmation(LucWindow *self)
     gtk_widget_add_css_class(title, "title-2");
     gtk_label_set_wrap(GTK_LABEL(title), TRUE);
     gtk_box_append(GTK_BOX(content), title);
-    detail_text = g_strdup_printf(_("Target: %s (%s, %s)\nImage: %s"),
-                                  device_name, self->selected_device->device,
-                                  device_size, image_name);
+    if (self->windows_info != NULL)
+        detail_text = g_strdup_printf(
+            selected_windows_firmware(self) == LUC_WINDOWS_FIRMWARE_BIOS
+                ? _("Target: %s (%s, %s)\nImage: %s\nMode: Windows BIOS/MBR · FAT32")
+                : _("Target: %s (%s, %s)\nImage: %s\nMode: Windows UEFI/GPT · FAT32"),
+            device_name, self->selected_device->device, device_size, image_name);
+    else
+        detail_text = g_strdup_printf(
+            _("Target: %s (%s, %s)\nImage: %s"), device_name,
+            self->selected_device->device, device_size, image_name);
     details = gtk_label_new(detail_text);
     gtk_label_set_wrap(GTK_LABEL(details), TRUE);
     gtk_label_set_xalign(GTK_LABEL(details), 0.0f);
@@ -537,6 +675,7 @@ static void
 on_write_clicked(GtkButton *button, LucWindow *self)
 {
     GStatBuf metadata;
+    guint64 required_size;
 
     (void)button;
     if (self->image_path == NULL || self->selected_device == NULL ||
@@ -549,7 +688,11 @@ on_write_clicked(GtkButton *button, LucWindow *self)
                              "error");
         return;
     }
-    if ((guint64)metadata.st_size > self->selected_device->size) {
+    required_size = self->windows_info != NULL
+                        ? self->windows_info->content_size +
+                              WINDOWS_FILESYSTEM_OVERHEAD
+                        : (guint64)metadata.st_size;
+    if (required_size > self->selected_device->size) {
         set_operation_status(self,
                              _("The image is larger than the selected device."),
                              "error");
@@ -603,6 +746,8 @@ luc_window_finalize(GObject *object)
     LucWindow *self = LUC_WINDOW(object);
 
     g_clear_pointer(&self->image_path, g_free);
+    g_clear_pointer(&self->windows_info, luc_windows_image_info_free);
+    g_clear_pointer(&self->classification, luc_image_classification_free);
     g_clear_pointer(&self->selected_device, luc_device_free);
     G_OBJECT_CLASS(luc_window_parent_class)->finalize(object);
 }
@@ -634,7 +779,6 @@ luc_window_init(LucWindow *self)
     GtkWidget *scroller = gtk_scrolled_window_new();
     GtkWidget *content = gtk_box_new(GTK_ORIENTATION_VERTICAL, 12);
     GtkWidget *image_list = gtk_list_box_new();
-    AdwActionRow *verify_row = ADW_ACTION_ROW(adw_action_row_new());
     GtkWidget *actions = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 8);
     GtkWidget *safety;
 
@@ -659,15 +803,24 @@ luc_window_init(LucWindow *self)
     gtk_widget_set_valign(GTK_WIDGET(self->image_button), GTK_ALIGN_CENTER);
     adw_action_row_add_suffix(self->image_row, GTK_WIDGET(self->image_button));
     gtk_list_box_append(GTK_LIST_BOX(image_list), GTK_WIDGET(self->image_row));
-    adw_preferences_row_set_title(ADW_PREFERENCES_ROW(verify_row),
+    self->verify_row = GTK_WIDGET(adw_action_row_new());
+    adw_preferences_row_set_title(ADW_PREFERENCES_ROW(self->verify_row),
                                   _("Full verification"));
-    adw_action_row_set_subtitle(verify_row,
+    adw_action_row_set_subtitle(ADW_ACTION_ROW(self->verify_row),
                                 _("Read the written image back and compare SHA-256"));
     self->verify_switch = GTK_SWITCH(gtk_switch_new());
     gtk_switch_set_active(self->verify_switch, TRUE);
     gtk_widget_set_valign(GTK_WIDGET(self->verify_switch), GTK_ALIGN_CENTER);
-    adw_action_row_add_suffix(verify_row, GTK_WIDGET(self->verify_switch));
-    gtk_list_box_append(GTK_LIST_BOX(image_list), GTK_WIDGET(verify_row));
+    adw_action_row_add_suffix(ADW_ACTION_ROW(self->verify_row),
+                              GTK_WIDGET(self->verify_switch));
+    gtk_list_box_append(GTK_LIST_BOX(image_list), self->verify_row);
+    self->firmware_row = ADW_COMBO_ROW(adw_combo_row_new());
+    adw_preferences_row_set_title(ADW_PREFERENCES_ROW(self->firmware_row),
+                                  _("Windows partition scheme"));
+    adw_action_row_set_subtitle(ADW_ACTION_ROW(self->firmware_row),
+                                _("Choose the firmware used by the target computer"));
+    gtk_widget_set_visible(GTK_WIDGET(self->firmware_row), FALSE);
+    gtk_list_box_append(GTK_LIST_BOX(image_list), GTK_WIDGET(self->firmware_row));
     gtk_box_append(GTK_BOX(content), image_list);
     g_signal_connect(self->image_button, "clicked", G_CALLBACK(on_choose_image), self);
 
