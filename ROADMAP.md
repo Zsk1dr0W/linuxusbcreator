@@ -16,12 +16,13 @@ are explicit.
 
 ## M1 — Read-only device discovery
 
-- [ ] GTK application shell and command-line diagnostic mode.
-- [ ] Enumerate block devices using UDisks2.
-- [ ] Display stable identity: `/dev` node, model, serial, bus, and capacity.
-- [ ] Exclude loop, zram, device-mapper, optical, and system/root devices.
-- [ ] React safely to device insertion, removal, and renumbering.
-- [ ] Unit tests using captured UDisks2 fixtures.
+- [x] GTK application shell and command-line diagnostic mode.
+- [x] Enumerate block devices using UDisks2.
+- [x] Display stable identity: `/dev` node, model, serial, bus, and capacity.
+- [x] Exclude loop, zram, device-mapper, optical, and system/root devices.
+- [x] React to UDisks2 insertion, removal, and property-change events.
+- [x] Unit tests for the device eligibility policy.
+- [ ] Integration tests using a private fixture D-Bus and captured UDisks2 data.
 
 Exit criteria: no code path opens a block device for writing.
 
@@ -71,4 +72,3 @@ GUI as root.
 - Bad-block and counterfeit-capacity testing.
 - Download and checksum workflows.
 - Accessibility and broader localization.
-

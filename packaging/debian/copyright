@@ -1,0 +1,9 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: linuxusbcreator
+Source: https://github.com/Zsk1dr0W/linuxusbcreator
+
+Files: *
+Copyright: 2026 Víctor Díaz Gonzalez
+License: GPL-3+
+ See /usr/share/common-licenses/GPL-3 on Debian systems.
+

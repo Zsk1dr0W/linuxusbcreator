@@ -1,0 +1,7 @@
+option(
+  'diagnostics',
+  type: 'boolean',
+  value: true,
+  description: 'Enable the read-only --diagnose command',
+)
+

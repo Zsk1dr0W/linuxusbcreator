@@ -9,9 +9,10 @@ not affiliated with the Rufus project.
 
 ## Project status
 
-The project is in its architecture and bootstrap phase. **It does not write to
-storage devices yet.** See [ROADMAP.md](ROADMAP.md) for the implementation plan
-and [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the proposed design.
+Milestone M1 provides a read-only GTK application and a diagnostic command that
+enumerate storage through UDisks2. **It does not write to storage devices.** See
+[ROADMAP.md](ROADMAP.md) for the implementation plan and
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the proposed design.
 
 ## Initial goals
 
@@ -39,10 +40,36 @@ and [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the proposed design.
 - GLib/GIO, UDisks2, Polkit, libfdisk and wimlib
 - AppStream and freedesktop desktop integration
 
-## Build and packaging
+## Build
 
-The exact development dependencies will be finalized with the first executable
-milestone. Packaging design is documented in [packaging/README.md](packaging/README.md).
+On Fedora:
+
+```sh
+sudo dnf install gcc meson ninja-build gtk4-devel libadwaita-devel glib2-devel udisks2
+meson setup _build
+meson compile -C _build
+meson test -C _build --print-errorlogs
+./_build/src/linuxusbcreator
+```
+
+On Debian or Ubuntu:
+
+```sh
+sudo apt install gcc meson ninja-build libgtk-4-dev libadwaita-1-dev libglib2.0-dev udisks2
+meson setup _build
+meson compile -C _build
+meson test -C _build --print-errorlogs
+./_build/src/linuxusbcreator
+```
+
+For a read-only JSON diagnostic:
+
+```sh
+./_build/src/linuxusbcreator --diagnose
+```
+
+GitHub Actions builds on Ubuntu and Fedora and produces `.deb` and `.rpm`
+artifacts. Packaging details are in [packaging/README.md](packaging/README.md).
 
 ## Safety
 
@@ -55,4 +82,3 @@ place.
 
 Original code in this repository is intended to be licensed under GPL-3.0-or-later.
 Code adapted from Rufus must retain its original copyright and license notices.
-

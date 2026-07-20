@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.zsk1dr0w.LinuxUsbCreator</id>
+  <name>Linux USB Creator</name>
+  <summary>Safely create bootable USB media</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+  <description>
+    <p>
+      Linux USB Creator is a native Linux utility for inspecting removable USB
+      storage and, in future releases, creating verified bootable media.
+    </p>
+    <p>
+      This development release is read-only and exists to validate conservative
+      device discovery before write support is implemented.
+    </p>
+  </description>
+  <launchable type="desktop-id">io.github.zsk1dr0w.LinuxUsbCreator.desktop</launchable>
+  <url type="homepage">https://github.com/Zsk1dr0W/linuxusbcreator</url>
+  <url type="bugtracker">https://github.com/Zsk1dr0W/linuxusbcreator/issues</url>
+  <developer id="io.github.zsk1dr0w">
+    <name>Víctor Díaz Gonzalez</name>
+  </developer>
+  <content_rating type="oars-1.1" />
+  <releases>
+    <release version="0.1.0" date="2026-07-20">
+      <description>
+        <p>Initial read-only device discovery milestone.</p>
+      </description>
+    </release>
+  </releases>
+</component>
+
