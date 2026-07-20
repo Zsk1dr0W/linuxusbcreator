@@ -1,74 +1,88 @@
-# Roadmap
+# Hoja de ruta
 
-This roadmap uses safety gates rather than dates. A milestone is complete only
-when its acceptance criteria pass on supported distributions.
+Esta hoja de ruta usa puertas de seguridad en lugar de fechas. Un hito solo se
+considera completado cuando sus criterios de aceptación están comprobados.
 
-## M0 — Repository and design
+## M0 — Repositorio y diseño
 
-- [x] Define scope, architecture, security model, and packaging approach.
-- [x] Establish GPL-compatible contribution and attribution rules.
-- [x] Add an initial application icon and desktop metadata plan.
-- [ ] Enable GitHub Actions and branch protection.
-- [ ] Record architecture decisions as ADRs.
+- [x] Definir el alcance, la arquitectura, el modelo de seguridad y el enfoque
+  de empaquetado.
+- [x] Establecer reglas de contribución y atribución compatibles con GPL.
+- [x] Añadir un icono inicial y el plan de metadatos de escritorio.
+- [x] Activar GitHub Actions.
+- [ ] Configurar protección de la rama `main`.
+- [x] Registrar las decisiones de arquitectura como ADR.
 
-Exit criteria: repository builds documentation cleanly and project boundaries
-are explicit.
+Criterio de salida: el repositorio compila su aplicación y sus pruebas, y los
+límites entre sus componentes están documentados explícitamente. La protección
+de rama sigue pendiente de configuración en GitHub.
 
-## M1 — Read-only device discovery
+## M1 — Descubrimiento de dispositivos en modo lectura
 
-- [x] GTK application shell and command-line diagnostic mode.
-- [x] Enumerate block devices using UDisks2.
-- [x] Display stable identity: `/dev` node, model, serial, bus, and capacity.
-- [x] Exclude loop, zram, device-mapper, optical, and system/root devices.
-- [x] React to UDisks2 insertion, removal, and property-change events.
-- [x] Unit tests for the device eligibility policy.
-- [ ] Integration tests using a private fixture D-Bus and captured UDisks2 data.
+- [x] Crear el shell de GTK y el modo de diagnóstico por línea de comandos.
+- [x] Enumerar dispositivos de bloque mediante UDisks2.
+- [x] Mostrar identidad estable: nodo `/dev`, modelo, serie, bus y capacidad.
+- [x] Excluir loop, zram, device-mapper, dispositivos ópticos y el dispositivo
+  del sistema/root.
+- [x] Reaccionar a inserciones, extracciones y cambios de propiedades reportados
+  por UDisks2.
+- [x] Añadir pruebas unitarias de la política de elegibilidad.
+- [ ] Añadir pruebas de integración con un D-Bus privado y datos capturados de
+  UDisks2.
 
-Exit criteria: no code path opens a block device for writing.
+Criterio de salida: no existe ningún camino de código que abra un dispositivo de
+bloque para escribir. Este criterio está cumplido; las pruebas de integración
+siguen siendo una mejora pendiente para robustecer la cobertura del monitor.
 
-## M2 — Raw/hybrid image writer MVP
+## M2 — Escritor de imágenes raw/híbridas (MVP)
 
-- [ ] Inspect images and compute SHA-256.
-- [ ] Acquire authorization through a narrowly scoped Polkit helper.
-- [ ] Unmount target partitions and revalidate device identity.
-- [ ] Stream writes with bounded memory, progress, cancellation, and `fsync`.
-- [ ] Optional full read-back verification.
-- [ ] Structured and exportable operation log.
-- [ ] Failure-injection tests for short writes, disconnects, and permission loss.
+- [ ] Inspeccionar imágenes y calcular SHA-256.
+- [ ] Obtener autorización mediante un helper Polkit de alcance limitado.
+- [ ] Desmontar particiones objetivo y volver a validar la identidad del
+  dispositivo.
+- [ ] Escribir en streaming con memoria acotada, progreso, cancelación y
+  `fsync`.
+- [ ] Añadir verificación completa opcional mediante lectura posterior.
+- [ ] Crear un registro estructurado y exportable de operaciones.
+- [ ] Añadir pruebas de fallos para escrituras cortas, desconexiones y pérdida
+  de permisos.
 
-Exit criteria: verified raw writes work on the hardware test matrix without
-allowing the current system disk as a target.
+Criterio de salida: las escrituras raw verificadas funcionan en la matriz de
+hardware de pruebas sin permitir seleccionar el disco actual del sistema.
 
-## M3 — First distributable release
+## M3 — Primera versión distribuible
 
-- [ ] AppStream metadata, `.desktop` file, icons, translations, and man page.
-- [ ] Reproducible source tarball.
-- [ ] CI jobs producing `.deb` and `.rpm` artifacts.
-- [ ] Package installation/removal tests on Debian, Ubuntu, Fedora, and openSUSE.
-- [ ] Signed release checksums and documented threat model.
+- [ ] Completar metadatos AppStream, archivo `.desktop`, iconos, traducciones y
+  página de manual.
+- [ ] Generar un tarball de fuentes reproducible.
+- [x] Configurar CI para producir artefactos `.deb` y `.rpm`.
+- [ ] Probar instalación y eliminación de paquetes en Debian, Ubuntu, Fedora y
+  openSUSE.
+- [ ] Publicar checksums de lanzamiento firmados y el modelo de amenazas.
 
-Exit criteria: packages install cleanly and the MVP works without launching the
-GUI as root.
+Criterio de salida: los paquetes se instalan limpiamente y el MVP funciona sin
+iniciar la interfaz gráfica como root.
 
-## M4 — Windows installation media
+## M4 — Medios de instalación de Windows
 
-- [ ] Inspect ISO9660/UDF filesystems.
-- [ ] Create GPT/MBR layouts for BIOS and UEFI targets.
-- [ ] Format FAT32/NTFS using controlled helpers.
-- [ ] Copy files while preserving relevant metadata.
-- [ ] Split oversized `install.wim` files with wimlib.
-- [ ] Validate boot structures and test current Windows installer images.
+- [ ] Inspeccionar sistemas de archivos ISO9660/UDF.
+- [ ] Crear diseños GPT/MBR para objetivos BIOS y UEFI.
+- [ ] Formatear FAT32/NTFS mediante helpers controlados.
+- [ ] Copiar archivos conservando los metadatos relevantes.
+- [ ] Dividir archivos `install.wim` grandes con wimlib.
+- [ ] Validar estructuras de arranque y probar imágenes actuales del instalador
+  de Windows.
 
-## M5 — Linux ISO mode and persistence
+## M5 — Modo ISO y persistencia Linux
 
-- [ ] ISO extraction mode for images that cannot use raw-copy mode.
-- [ ] Syslinux/GRUB handling where required.
-- [ ] Optional persistence for explicitly supported distributions.
-- [ ] Compatibility database with fixtures and provenance.
+- [ ] Añadir extracción ISO para imágenes que no puedan usar copia raw.
+- [ ] Gestionar Syslinux/GRUB cuando sea necesario.
+- [ ] Añadir persistencia opcional para distribuciones explícitamente soportadas.
+- [ ] Crear una base de compatibilidad con fixtures y procedencia documentada.
 
-## Later candidates
+## Candidatos posteriores
 
-- Save a USB device to an image.
-- Bad-block and counterfeit-capacity testing.
-- Download and checksum workflows.
-- Accessibility and broader localization.
+- Guardar un dispositivo USB como imagen.
+- Pruebas de bloques defectuosos y de capacidad falsa.
+- Descarga de imágenes y verificación de checksums.
+- Accesibilidad y localización adicional.
