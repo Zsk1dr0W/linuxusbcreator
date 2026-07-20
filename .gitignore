@@ -1,0 +1,8 @@
+/_build/
+/build/
+/dist/
+/tmp/
+*.deb
+*.rpm
+*.tar.xz
+compile_commands.json
