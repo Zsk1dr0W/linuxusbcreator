@@ -84,12 +84,14 @@ iniciar la interfaz gráfica como root.
   mostrar el resultado o diagnóstico final.
 - [x] Añadir pruebas para candidatos montados, protocolo del helper y fallos al
   iniciar la operación gráfica.
-- [ ] Validar el flujo gráfico completo con el Kingston DataTraveler de la
+- [x] Validar el flujo gráfico completo con el Kingston DataTraveler de la
   matriz de hardware.
 
 Criterio de salida: una persona puede completar una escritura raw verificada
 desde la interfaz sin ejecutar la aplicación como root y sin poder seleccionar
 el disco del sistema.
+Cumplido con Linux USB Creator 0.4.0 y una imagen Fedora Workstation Live 44;
+la evidencia se conserva en `docs/MATRIZ_PRUEBAS_HARDWARE.md`.
 
 ## M4 — Medios de instalación de Windows
 
