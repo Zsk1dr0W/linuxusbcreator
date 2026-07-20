@@ -57,6 +57,7 @@ automatic WIM splitting.
 * Mon Jul 20 2026 Víctor Díaz Gonzalez <106137683+Zsk1dr0W@users.noreply.github.com> - 0.5.0-1
 - Add UEFI/GPT and BIOS/MBR Windows media creation with per-stage progress
 - Prevent UDisks target-mount authorization timeouts
+- Clarify safe removal after Windows media verification
 
 * Mon Jul 20 2026 Víctor Díaz Gonzalez <106137683+Zsk1dr0W@users.noreply.github.com> - 0.4.0-1
 - Add the functional graphical image writing workflow

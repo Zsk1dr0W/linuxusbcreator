@@ -4,6 +4,7 @@ linuxusbcreator (0.5.0-1) unstable; urgency=medium
     per-stage progress and automatic WIM splitting.
   * Prevent a second interactive UDisks authorization from timing out while
     mounting a freshly formatted Windows target.
+  * Clarify that verified Windows media is safely unmounted and ready to remove.
 
  -- Víctor Díaz Gonzalez <106137683+Zsk1dr0W@users.noreply.github.com>  Mon, 20 Jul 2026 08:00:00 -0400
 

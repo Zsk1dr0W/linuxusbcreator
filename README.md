@@ -129,6 +129,9 @@ helper only partitions and formats the confirmed USB; ISO extraction, WIM
 splitting, synchronization, and verification run as the desktop user.
 Every measurable stage reports its own percentage; atomic partitioning,
 formatting, mounting, and synchronization report their binary completion.
+After verification the Windows target is synchronized and safely unmounted.
+An UEFI/GPT target may be hidden by file managers because its partition uses
+the standard EFI System GUID; it can be physically disconnected at that point.
 
 GitHub Actions builds on Debian, Ubuntu, Fedora, and openSUSE, produces `.deb`
 and `.rpm` artifacts, and publishes a reproducible source archive plus release

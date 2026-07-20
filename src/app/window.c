@@ -515,12 +515,14 @@ on_operation_finished(LucWriteOperation *operation,
     if (success) {
         gtk_progress_bar_set_fraction(self->progress, 1.0);
         if (self->operation_windows) {
-            gtk_progress_bar_set_text(self->progress, _("Windows media completed and verified"));
+            gtk_progress_bar_set_text(
+                self->progress,
+                _("Windows media completed, verified and safely unmounted"));
             set_operation_status(
                 self,
                 selected_windows_firmware(self) == LUC_WINDOWS_FIRMWARE_BIOS
-                    ? _("The BIOS/MBR Windows installation media was created successfully.")
-                    : _("The UEFI/GPT Windows installation media was created successfully."),
+                    ? _("The BIOS/MBR Windows installation media was created successfully. The USB is safely unmounted and can be disconnected.")
+                    : _("The UEFI/GPT Windows installation media was created successfully. The USB is safely unmounted and can be disconnected."),
                 "success");
         } else if (self->operation_verify) {
             gtk_progress_bar_set_text(self->progress, _("Completed and verified"));
