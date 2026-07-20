@@ -76,8 +76,9 @@ El flujo se repitió después sobre el Kingston DataTraveler de
 partición EFI FAT32 limpia. La copia, división, `fsync` y verificación
 terminaron correctamente. El destino contenía 1.066 archivos regulares,
 `efi/boot/bootx64.efi` (3.008.968 bytes), `sources/boot.wim` (629.671.774
-bytes) y los tres SWM de la tabla; no quedó `install.wim`. Falta validar el
-arranque de este medio Windows en hardware real.
+bytes) y los tres SWM de la tabla; no quedó `install.wim`. En la prueba física
+posterior, el firmware de una laptop x64 reconoció el USB, arrancó desde él y
+llegó a Windows Setup.
 
 ## Ensayo del canal BIOS/MBR
 
@@ -90,5 +91,14 @@ las tres firmas `55 aa` se comprobaron por lectura posterior.
 La aplicación informó porcentajes reales durante validación WIM, copia,
 división WIM, verificación de SWM y comparación de archivos. Las operaciones
 atómicas informaron 0/100. `fsck.fat -n` terminó limpio con 1.169 archivos y
-513.493 de 1.890.851 clústeres usados. La creación BIOS queda validada; todavía
-falta arrancar el USB en hardware x64 con Legacy/CSM.
+513.493 de 1.890.851 clústeres usados. En la prueba física posterior, el equipo
+x64 reconoció el USB en modo Legacy/CSM, arrancó desde él y llegó al instalador
+de Windows.
+
+## Alcance de la validación física
+
+Los perfiles UEFI/GPT x64 y BIOS/MBR x64 están validados de extremo a extremo
+en hardware real. Las imágenes ARM64 oficiales superaron la inspección, la
+validación de payloads y las comprobaciones estructurales, pero no se probó su
+arranque por no disponer de hardware ARM64. El perfil UEFI ARM64 de 0.5.0 debe
+considerarse experimental hasta ampliar esta matriz.

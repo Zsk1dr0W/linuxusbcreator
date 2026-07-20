@@ -121,18 +121,26 @@ el USB fue reconocido por el menú de arranque de una laptop real, inició Fedor
   BIOS para ARM64 o imágenes que no incluyan `boot/etfsboot.com`.
 - [x] Mostrar porcentajes por bytes o desde wimlib en las etapas medibles y
   estados 0/100 reales en las operaciones atómicas.
-- [ ] Probar el medio UEFI/FAT32 creado en hardware real x64 y ARM64.
-- [ ] Probar el medio BIOS/MBR x64 creado en hardware real con CSM/Legacy.
+- [x] Probar el medio UEFI/FAT32 x64 en hardware real: el firmware reconoció
+  el USB, inició desde él y llegó a Windows Setup.
+- [x] Probar el medio BIOS/MBR x64 en hardware real con CSM/Legacy: el firmware
+  reconoció el USB, inició desde él y llegó al instalador de Windows.
+- [x] Registrar que la variante UEFI ARM64 pasó inspección, validación de
+  payload y comprobaciones estructurales, pero no una prueba de arranque por
+  no disponer de hardware ARM64.
 
-Los perfiles UEFI/GPT y BIOS/MBR son escribibles en desarrollo. No se publicará
-la versión 0.5.0 ni se anunciará BIOS como validado hasta superar sus pruebas
-de arranque en hardware real. NTFS queda fuera de esta versión.
+Los perfiles UEFI/GPT y BIOS/MBR x64 superaron la creación, verificación y el
+arranque en hardware real. La variante UEFI ARM64 se distribuye como soporte
+experimental y no se anuncia como validada físicamente. NTFS queda fuera de
+esta versión.
 
 Criterio de salida: la interfaz identifica la imagen, ofrece únicamente los
-perfiles compatibles y crea medios UEFI/GPT x64/ARM64 y BIOS/MBR x64 que
-arrancan en hardware real; muestra progreso porcentual por etapa y divide los
-WIM grandes sin procesar contenido ISO/WIM como root ni permitir seleccionar
-el disco del sistema.
+perfiles compatibles y crea medios UEFI/GPT y BIOS/MBR x64 que arrancan en
+hardware real; muestra progreso porcentual por etapa y divide los WIM grandes
+sin procesar contenido ISO/WIM como root ni permitir seleccionar el disco del
+sistema. Cumplido para el alcance publicado y validado de Linux USB Creator
+0.5.0. La validación física ARM64 queda como ampliación explícita de la matriz,
+sin bloquear la entrega x64 ni afirmar una certificación inexistente.
 
 ## M5 — Modo ISO y persistencia Linux
 

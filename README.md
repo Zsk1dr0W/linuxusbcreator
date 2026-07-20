@@ -17,11 +17,12 @@ manual page, reproducible source archives, and install-tested `.deb` and `.rpm`
 artifacts. See
 [ROADMAP.md](ROADMAP.md) for the implementation plan and
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the proposed design.
-M4 now includes ISO9660/UDF inspection, complete WIM/ESD validation, and an
-initial Windows writing profile. The application can create a GPT disk with a
-FAT32 EFI System Partition, copy and verify the installer without privileges,
-and automatically split an oversized `install.wim`. BIOS/MBR and NTFS profiles
-remain disabled until they have independent hardware validation.
+M4 includes ISO9660/UDF inspection, complete WIM/ESD validation, UEFI/GPT and
+BIOS/MBR Windows profiles, and automatic splitting of an oversized
+`install.wim`. Both x64 profiles have booted on physical hardware and reached
+Windows Setup. ARM64 is UEFI-only and remains experimental because physical
+ARM64 hardware was not available for its boot test. NTFS is outside the 0.5.0
+scope.
 
 ## Initial goals
 

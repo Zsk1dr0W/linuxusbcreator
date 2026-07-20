@@ -50,19 +50,28 @@ completó una instalación de Fedora sobre el disco de la laptop.
 
 | Fecha | Dispositivo | Imagen | Resultado |
 |---|---|---|---|
-| 2026-07-20 | Kingston DataTraveler 3.0, serie `E0D55E6B6367172049400134` | Windows 11 25H2 Spanish x64 v2 oficial | GPT/EFI/FAT32, copia, división WIM en tres SWM, sincronización y verificación completas |
+| 2026-07-20 | Kingston DataTraveler 3.0, serie `E0D55E6B6367172049400134` | Windows 11 25H2 Spanish x64 v2 oficial | GPT/EFI/FAT32, copia, división WIM en tres SWM, sincronización y verificación completas; el firmware reconoció el USB, arrancó y llegó a Windows Setup |
 
 `fsck.fat -n` informó un sistema FAT32 limpio. Se verificaron los registros de
-GPT, la partición EFI, 1.066 archivos regulares y los payloads de arranque. Esta
-fila acredita la creación del medio, no todavía su arranque físico.
+GPT, la partición EFI, 1.066 archivos regulares y los payloads de arranque. La
+prueba posterior en una laptop real acreditó también el arranque completo hasta
+el instalador, sin realizar cambios en el disco interno.
 
 ## M4 — Creación de medio Windows BIOS/MBR
 
 | Fecha | Dispositivo | Imagen | Resultado |
 |---|---|---|---|
-| 2026-07-20 | Kingston DataTraveler 3.0, serie `E0D55E6B6367172049400134` | Windows 11 25H2 Spanish x64 v2 oficial | MBR/FAT32 activo, registros MBR/PBR NT6, copia, división WIM, sincronización y verificación completas |
+| 2026-07-20 | Kingston DataTraveler 3.0, serie `E0D55E6B6367172049400134` | Windows 11 25H2 Spanish x64 v2 oficial | MBR/FAT32 activo, registros MBR/PBR NT6, copia, división WIM, sincronización y verificación completas; reconocido y arrancado en Legacy/CSM hasta el instalador |
 
 Se verificaron tabla DOS, tipo `0x0c`, bandera activa y firmas `55 aa` del MBR,
-PBR principal y respaldo. `fsck.fat -n` terminó limpio. Falta comprobar este
-medio en un equipo con arranque Legacy/CSM antes de marcar BIOS como validado
-en hardware.
+PBR principal y respaldo. `fsck.fat -n` terminó limpio. La prueba posterior en
+hardware x64 con arranque Legacy/CSM reconoció el dispositivo, inició desde él
+y llegó al instalador de Windows.
+
+## M4 — Límite de la validación ARM64
+
+Las imágenes oficiales ARM64 superaron la inspección UDF, la validación de
+`boot.wim` e `install.wim`, la detección UEFI y las comprobaciones de estructura
+documentadas en `MATRIZ_PRUEBAS_WINDOWS.md`. No se dispone de hardware ARM64
+para comprobar el arranque físico; por tanto, 0.5.0 presenta este perfil como
+experimental y no como validado en hardware.
