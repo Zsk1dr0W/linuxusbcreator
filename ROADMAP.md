@@ -196,10 +196,11 @@ comprobados en hardware real.
   seguro y comandos CLI de inspección/validación/escritura.
 - [x] Añadir pruebas unitarias para detección de perfiles, plan GPT, protocolo
   del helper, copia, configuración persistente y verificación.
-- [x] Crear el medio Fedora 44 persistente en el Kingston DataTraveler y
-  comprobar en hardware real el arranque UEFI y la persistencia activa.
-- [ ] Completar la comprobación de instalación y de conservación de un cambio
-  después de dos reinicios del mismo medio persistente.
+- [ ] Crear y validar el medio Fedora 44 persistente en el Kingston
+  DataTraveler: la primera prueba llegó al arranque UEFI, pero quedó en un
+  bucle antes del escritorio; se debe aislar y corregir el fallo.
+- [ ] Comprobar llegada al instalador y conservación de un cambio después de
+  dos reinicios del mismo medio persistente.
 - [ ] Generar, instalar y probar los paquetes DEB y RPM 0.6.0 y publicar la
   release firmada después de superar la prueba física.
 
@@ -207,7 +208,8 @@ Criterio de salida: Fedora Workstation Live 44 puede crearse desde la interfaz
 en modo ISO UEFI, arranca en hardware real, conserva cambios cuando se activa
 persistencia, se desmonta con seguridad y no amplía la superficie privilegiada
 a parsers o contenido de la ISO. El código y la validación estructural están
-completos; la prueba física y los paquetes finales siguen abiertos.
+completos; la prueba física está bloqueada por el bucle de arranque y los
+paquetes finales siguen abiertos.
 
 ## M6 — Renovación de la interfaz de usuario
 
