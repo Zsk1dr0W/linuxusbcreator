@@ -198,7 +198,8 @@ comprobados en hardware real.
   del helper, copia, configuración persistente y verificación.
 - [ ] Crear y validar el medio Fedora 44 persistente en el Kingston
   DataTraveler: la primera prueba llegó al arranque UEFI, pero quedó en un
-  bucle antes del escritorio; se debe aislar y corregir el fallo.
+  bucle antes del escritorio con contextos SELinux `unlabeled_t`. La corrección
+  está implementada y requiere repetir la prueba física.
 - [ ] Comprobar llegada al instalador y conservación de un cambio después de
   dos reinicios del mismo medio persistente.
 - [ ] Generar, instalar y probar los paquetes DEB y RPM 0.6.0 y publicar la

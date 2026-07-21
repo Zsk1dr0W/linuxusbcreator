@@ -53,7 +53,7 @@ helper_exe = executable(
   'linuxusbcreator-helper',
   files('helper/main.c') + linux_sources,
   include_directories: include_directories('.', '..'),
-  dependencies: [core_dep, gio_dep],
+  dependencies: [core_dep, gio_dep, dependency('libselinux')],
   install: true,
   install_dir: get_option('libexecdir'),
 )

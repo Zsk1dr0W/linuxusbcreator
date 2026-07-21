@@ -17,6 +17,12 @@ monta la ISO como loop de solo lectura, conserva shim/GRUB incluidos, copia
 verifica todos los archivos. La persistencia añade directorios OverlayFS en la
 partición ext4 y argumentos dracut cerrados.
 
+Los directorios `LiveOS`, `overlayfs` y `ovlwork` se crean durante la
+preparación privilegiada del sistema de archivos con el contexto SELinux
+literal `system_u:object_r:root_t:s0`. El helper monta temporalmente únicamente
+la segunda partición derivada del USB revalidado, con `nosuid`, `nodev` y
+`noexec`; no acepta rutas ni contextos proporcionados por la aplicación.
+
 El modo ISO es UEFI-only. BIOS continúa cubierto por la imagen híbrida original
 hasta disponer de una receta Syslinux/GRUB BIOS independiente y probada.
 

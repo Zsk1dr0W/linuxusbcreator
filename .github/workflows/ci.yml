@@ -17,7 +17,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install --yes gcc gettext meson ninja-build libglib2.0-dev libgtk-4-dev libadwaita-1-dev desktop-file-utils appstream-util
+          sudo apt-get install --yes gcc gettext meson ninja-build libglib2.0-dev libgtk-4-dev libadwaita-1-dev libselinux1-dev desktop-file-utils appstream-util
       - name: Configure
         run: meson setup _build -Db_sanitize=address,undefined
       - name: Build
@@ -31,7 +31,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install dependencies
-        run: dnf install --assumeyes gcc gettext meson ninja-build glib2-devel gtk4-devel libadwaita-devel desktop-file-utils libappstream-glib
+        run: dnf install --assumeyes gcc gettext meson ninja-build glib2-devel gtk4-devel libadwaita-devel libselinux-devel desktop-file-utils libappstream-glib
       - name: Configure
         run: meson setup _build
       - name: Build
@@ -46,7 +46,7 @@ jobs:
       - name: Install packaging dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install --yes build-essential debhelper gettext meson libglib2.0-dev libgtk-4-dev libadwaita-1-dev
+          sudo apt-get install --yes build-essential debhelper gettext meson libglib2.0-dev libgtk-4-dev libadwaita-1-dev libselinux1-dev
       - name: Stage Debian metadata
         run: cp -a packaging/debian debian
       - name: Build DEB
@@ -74,7 +74,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install packaging dependencies
-        run: dnf install --assumeyes gcc gettext git meson rpm-build xz glib2-devel gtk4-devel libadwaita-devel desktop-file-utils libappstream-glib
+        run: dnf install --assumeyes gcc gettext git meson rpm-build xz glib2-devel gtk4-devel libadwaita-devel libselinux-devel desktop-file-utils libappstream-glib
       - name: Create source archive
         run: |
           mkdir -p rpmbuild/BUILD rpmbuild/BUILDROOT rpmbuild/RPMS rpmbuild/SOURCES rpmbuild/SPECS rpmbuild/SRPMS
@@ -107,7 +107,7 @@ jobs:
       - name: Install dependencies
         run: |
           apt-get update
-          apt-get install --yes gcc gettext meson ninja-build libglib2.0-dev libgtk-4-dev libadwaita-1-dev desktop-file-utils appstream-util
+          apt-get install --yes gcc gettext meson ninja-build libglib2.0-dev libgtk-4-dev libadwaita-1-dev libselinux1-dev desktop-file-utils appstream-util
       - name: Build and test staged installation
         run: |
           meson setup _build --prefix=/usr
@@ -125,7 +125,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install dependencies
-        run: zypper --non-interactive install gcc gettext-tools meson ninja glib2-devel gtk4-devel libadwaita-devel desktop-file-utils AppStream
+        run: zypper --non-interactive install gcc gettext-tools meson ninja glib2-devel gtk4-devel libadwaita-devel libselinux-devel desktop-file-utils AppStream
       - name: Build, install and uninstall
         run: |
           meson setup _build --prefix=/usr

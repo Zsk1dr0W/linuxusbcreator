@@ -3,11 +3,14 @@
 #include "config.h"
 
 #include <errno.h>
+#include <fcntl.h>
 #include <gio/gio.h>
 #include <glib/gstdio.h>
 #include <pwd.h>
 #include <stdlib.h>
 #include <signal.h>
+#include <selinux/selinux.h>
+#include <sys/mount.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
@@ -230,7 +233,7 @@ wait_for_partition(const gchar *partition_path, GError **error)
 }
 
 static gboolean
-get_calling_user(gchar **root_owner, GError **error)
+get_calling_user(gchar **root_owner, uid_t *uid, gid_t *gid, GError **error)
 {
     const gchar *text = g_getenv("PKEXEC_UID");
     gchar *end = NULL;
@@ -259,7 +262,87 @@ get_calling_user(gchar **root_owner, GError **error)
     *root_owner = g_strdup_printf("root_owner=%u:%u",
                                   (guint)account->pw_uid,
                                   (guint)account->pw_gid);
+    *uid = account->pw_uid;
+    *gid = account->pw_gid;
     return TRUE;
+}
+
+static gboolean
+initialize_fedora_directories(const gchar *partition_path,
+                              uid_t uid,
+                              gid_t gid,
+                              GError **error)
+{
+    static const gchar *const names[] = {"LiveOS", "overlayfs", "ovlwork", NULL};
+    static const gchar context[] = "system_u:object_r:root_t:s0";
+    g_autofree gchar *mount_path = NULL;
+    int root_fd = -1;
+    gboolean mounted = FALSE;
+    gboolean success = FALSE;
+
+    mount_path = g_dir_make_tmp("linuxusbcreator-fedora-XXXXXX", error);
+    if (mount_path == NULL)
+        return FALSE;
+    if (mount(partition_path, mount_path, "ext4", MS_NOSUID | MS_NODEV | MS_NOEXEC,
+              NULL) != 0) {
+        g_set_error(error, G_IO_ERROR, g_io_error_from_errno(errno),
+                    "Unable to mount the Fedora data filesystem: %s",
+                    g_strerror(errno));
+        goto out;
+    }
+    mounted = TRUE;
+    root_fd = g_open(mount_path, O_RDONLY | O_CLOEXEC | O_DIRECTORY | O_NOFOLLOW, 0);
+    if (root_fd < 0) {
+        g_set_error(error, G_IO_ERROR, g_io_error_from_errno(errno),
+                    "Unable to open the Fedora data filesystem: %s",
+                    g_strerror(errno));
+        goto out;
+    }
+    for (guint i = 0; names[i] != NULL; i++) {
+        struct stat metadata;
+        int fd;
+
+        if (mkdirat(root_fd, names[i], 0755) != 0 && errno != EEXIST) {
+            g_set_error(error, G_IO_ERROR, g_io_error_from_errno(errno),
+                        "Unable to create Fedora directory %s: %s",
+                        names[i], g_strerror(errno));
+            goto out;
+        }
+        fd = openat(root_fd, names[i], O_RDONLY | O_CLOEXEC | O_DIRECTORY |
+                                      O_NOFOLLOW);
+        if (fd < 0 || fstat(fd, &metadata) != 0 || !S_ISDIR(metadata.st_mode)) {
+            if (fd >= 0)
+                close(fd);
+            g_set_error_literal(error, G_IO_ERROR, G_IO_ERROR_INVALID_DATA,
+                                "Unsafe Fedora data directory");
+            goto out;
+        }
+        if (fsetfilecon(fd, context) != 0 || fchown(fd, uid, gid) != 0) {
+            int saved_errno = errno;
+            close(fd);
+            g_set_error(error, G_IO_ERROR, g_io_error_from_errno(saved_errno),
+                        "Unable to secure Fedora directory %s: %s",
+                        names[i], g_strerror(saved_errno));
+            goto out;
+        }
+        close(fd);
+    }
+    success = fsync(root_fd) == 0;
+    if (!success)
+        g_set_error(error, G_IO_ERROR, g_io_error_from_errno(errno),
+                    "Unable to synchronize Fedora directories: %s",
+                    g_strerror(errno));
+out:
+    if (root_fd >= 0)
+        close(root_fd);
+    if (mounted && umount2(mount_path, 0) != 0 && success) {
+        g_set_error(error, G_IO_ERROR, g_io_error_from_errno(errno),
+                    "Unable to unmount Fedora data preparation: %s",
+                    g_strerror(errno));
+        success = FALSE;
+    }
+    g_rmdir(mount_path);
+    return success;
 }
 
 static int
@@ -285,6 +368,8 @@ run_prepare_linux(const gchar *device_path,
     g_autofree gchar *boot_partition = NULL;
     g_autofree gchar *data_partition = NULL;
     g_autofree gchar *root_owner = NULL;
+    uid_t calling_uid = 0;
+    gid_t calling_gid = 0;
     const gchar *sfdisk_argv[7];
     const gchar *fat_argv[7];
     const gchar *ext4_argv[8];
@@ -296,7 +381,7 @@ run_prepare_linux(const gchar *device_path,
         goto failed;
     }
     if (!is_whole_block_device(device_path, &error) ||
-        !get_calling_user(&root_owner, &error))
+        !get_calling_user(&root_owner, &calling_uid, &calling_gid, &error))
         goto failed;
     sfdisk = find_trusted_tool(sfdisk_candidates, &error);
     mkfs_fat = find_trusted_tool(mkfs_fat_candidates, &error);
@@ -365,6 +450,9 @@ run_prepare_linux(const gchar *device_path,
     ext4_argv[6] = data_partition;
     ext4_argv[7] = NULL;
     if (!run_fixed_tool(ext4_argv, NULL, &error))
+        goto failed_logged;
+    if (!initialize_fedora_directories(data_partition, calling_uid,
+                                       calling_gid, &error))
         goto failed_logged;
     g_print("{\"event\":\"progress\",\"completed\":2,\"total\":2}\n");
     fflush(stdout);

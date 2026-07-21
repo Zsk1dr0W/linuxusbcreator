@@ -15,6 +15,7 @@ BuildRequires:  pkgconfig(gio-2.0) >= 2.72
 BuildRequires:  pkgconfig(gio-unix-2.0) >= 2.72
 BuildRequires:  pkgconfig(gtk4) >= 4.8
 BuildRequires:  pkgconfig(libadwaita-1) >= 1.2
+BuildRequires:  pkgconfig(libselinux)
 Requires:       udisks2
 Requires:       polkit
 Requires:       /usr/bin/7z
