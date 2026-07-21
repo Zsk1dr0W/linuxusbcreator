@@ -27,8 +27,9 @@ scope.
 M4.1 changes the UEFI/GPT FAT32 partition from EFI System to Microsoft Basic
 Data so Windows can assign it a drive letter and Linux file managers can expose
 it normally after reconnection. The removable-media loader remains under
-`EFI/BOOT`; physical boot and Windows Explorer validation are required before
-publishing 0.5.1.
+`EFI/BOOT`. Version 0.5.1 was validated after physical reconnection in Windows
+and Linux file managers; its UEFI/GPT and BIOS/MBR x64 media both booted on
+physical hardware and reached Windows Setup.
 
 ## Initial goals
 

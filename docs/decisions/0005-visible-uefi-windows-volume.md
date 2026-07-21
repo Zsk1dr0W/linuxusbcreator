@@ -1,6 +1,6 @@
 # ADR 0005: Volumen Windows UEFI visible
 
-Estado: aceptado, pendiente de validación física
+Estado: aceptado y validado en hardware
 
 ## Contexto
 
@@ -38,7 +38,7 @@ un plan alternativo al helper privilegiado.
 ## Consecuencias
 
 Windows puede tratar el FAT32 como volumen de datos y asignarle una letra; Linux
-y UDisks2 pueden exponerlo normalmente. Como algunos firmwares pueden imponer
-políticas más restrictivas que la especificación, 0.5.1 no se publicará hasta
-repetir el arranque UEFI/GPT x64 en hardware real y comprobar la visibilidad
-después de reconectar el medio tanto en Linux como en Windows.
+y UDisks2 pueden exponerlo normalmente. La prueba final confirmó la visibilidad
+después de reconectar el medio tanto en Windows como en Linux y el arranque
+UEFI/GPT x64 hasta Windows Setup. El perfil BIOS/MBR también volvió a superar
+su prueba física en Legacy/CSM.

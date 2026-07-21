@@ -57,6 +57,7 @@ automatic WIM splitting.
 * Mon Jul 20 2026 Víctor Díaz Gonzalez <106137683+Zsk1dr0W@users.noreply.github.com> - 0.5.1-1
 - Make UEFI/GPT Windows media visible in Windows and Linux file managers
 - Keep removable-media UEFI boot files while using a Microsoft Basic Data partition
+- Validate Windows/Linux visibility and x64 UEFI/BIOS boot in hardware
 
 * Mon Jul 20 2026 Víctor Díaz Gonzalez <106137683+Zsk1dr0W@users.noreply.github.com> - 0.5.0-1
 - Add UEFI/GPT and BIOS/MBR Windows media creation with per-stage progress

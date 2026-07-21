@@ -78,9 +78,9 @@ experimental y no como validado en hardware.
 
 ## M4.1 — Medio Windows UEFI/GPT visible
 
-| Fecha | Versión | Dispositivo | Imagen | Resultado previo a reconectar |
+| Fecha | Versión | Dispositivo | Imagen | Resultado |
 |---|---|---|---|---|
-| 2026-07-20 | 0.5.1, RPM local | Kingston DataTraveler 3.0, serie `E0D55E6B6367172049400134` | Windows 11 25H2 Spanish x64 v2 oficial, 8.469.745.664 bytes | Microsoft Basic Data/FAT32 sin flags, creación, división WIM, sincronización y verificación completas; UDisks2 y GIO lo exponen como volumen visible, legible y escribible |
+| 2026-07-20 | 0.5.1, RPM local | Kingston DataTraveler 3.0, serie `E0D55E6B6367172049400134` | Windows 11 25H2 Spanish x64 v2 oficial, 8.469.745.664 bytes | Microsoft Basic Data/FAT32 sin flags, creación, división WIM, sincronización y verificación completas; visible después de reconectar en Windows y Linux; arranque UEFI/GPT hasta Windows Setup |
 
 La tabla GPT usa el tipo
 `EBD0A0A2-B9E5-4433-87C0-68B6B72699C7`, inicia en el sector 2048 y no contiene
@@ -91,8 +91,11 @@ tres fragmentos SWM. GIO informó `standard::is-hidden: FALSE` y permisos de
 lectura y escritura. Después del desmontaje seguro, `fsck.fat -n` terminó
 limpio con 1.169 entradas y 513.493 de 1.890.787 clústeres usados.
 
-La prueba de visibilidad después de reconectar físicamente y el arranque UEFI
-en hardware real permanecen pendientes.
+Después de desconectar y volver a conectar físicamente el Kingston, el volumen
+y sus archivos aparecieron en los exploradores de Windows y Linux. El firmware
+reconoció el perfil UEFI/GPT, arrancó desde él y llegó a Windows Setup. También
+se repitió el perfil BIOS/MBR en hardware real, fue reconocido en Legacy/CSM y
+llegó al instalador, sin regresiones respecto de 0.5.0.
 
 El CI `29782579640` compiló y probó 0.5.1 en Debian, Ubuntu, Fedora y openSUSE;
 construyó, instaló y eliminó los paquetes DEB/RPM, generó el tarball reproducible

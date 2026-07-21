@@ -152,18 +152,18 @@ sin bloquear la entrega x64 ni afirmar una certificación inexistente.
   Basic Data, conservando `EFI/BOOT` y el arranque UEFI removible.
 - [x] Añadir pruebas unitarias del tipo GPT y sus atributos para evitar que el
   medio vuelva a quedar marcado como una ESP oculta.
-- [ ] Confirmar que, después del desmontaje seguro y de volver a conectar el
+- [x] Confirmar que, después del desmontaje seguro y de volver a conectar el
   USB, Windows le asigna una letra y el explorador de archivos permite ver su
   contenido.
-- [ ] Confirmar que, después del desmontaje seguro y de volver a conectar el
+- [x] Confirmar que, después del desmontaje seguro y de volver a conectar el
   USB, UDisks2 y los exploradores de archivos Linux permiten montarlo y ver su
   contenido.
 - [x] Repetir la creación, división WIM, sincronización y verificación completa
   con una ISO oficial de Windows mayor que el límite FAT32.
-- [ ] Repetir en hardware real la prueba de arranque UEFI/GPT x64 hasta Windows
+- [x] Repetir en hardware real la prueba de arranque UEFI/GPT x64 hasta Windows
   Setup con el nuevo tipo de partición.
-- [x] Comprobar mediante la suite automatizada que el perfil BIOS/MBR x64, su
-  plan MBR activo y sus registros NT6 no presentan regresiones.
+- [x] Comprobar mediante la suite automatizada y en hardware real que el perfil
+  BIOS/MBR x64, su plan MBR activo y sus registros NT6 no presentan regresiones.
 - [x] Actualizar el diagnóstico final y la documentación para eliminar la
   advertencia de que el medio UEFI puede quedar oculto.
 - [x] Generar, instalar y probar los paquetes DEB y RPM de Linux USB Creator
@@ -174,6 +174,11 @@ Criterio de salida: un medio Windows UEFI/GPT creado por Linux USB Creator
 conectarlo tanto en Windows como en Linux y conserva la verificación completa,
 el desmontaje seguro y todas las protecciones contra la selección del disco
 del sistema.
+
+Criterio cumplido con Linux USB Creator 0.5.1 y el Kingston DataTraveler de la
+matriz: la división WIM, los arranques UEFI/GPT y BIOS/MBR y la visibilidad del
+volumen después de reconectarlo en los exploradores de Windows y Linux fueron
+comprobados en hardware real.
 
 ## M5 — Modo ISO y persistencia Linux
 

@@ -123,5 +123,9 @@ archivos ordinarios. UDisks2 informó `HintAuto=true`, `HintIgnore=false` y
 montó `/dev/sda1` como el usuario activo. GIO indicó `is-hidden: FALSE` y acceso
 de lectura y escritura; `fsck.fat -n` terminó limpio con 1.169 entradas.
 
-Quedan por registrar la visibilidad después de desconectar y reconectar
-físicamente el USB en Linux y Windows y el nuevo arranque UEFI en hardware.
+Después de desconectar y reconectar físicamente el USB, su contenido apareció
+en los exploradores de archivos de Windows y Linux. El medio UEFI/GPT fue
+reconocido por el firmware, arrancó y llegó a Windows Setup. La repetición del
+perfil BIOS/MBR también fue reconocida en Legacy/CSM y llegó al instalador. Con
+estas pruebas quedan validados en hardware la visibilidad, la división WIM y
+los dos perfiles x64 de 0.5.1.
