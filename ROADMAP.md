@@ -229,6 +229,25 @@ Criterio de salida: la interfaz 0.7.0 comunica claramente qué imagen, USB y
 perfil se usarán, sigue siendo operable con teclado y lector de pantalla y no
 introduce regresiones en los flujos raw, Windows o Fedora persistente.
 
+## M7 — Robustez, compatibilidad y preparación 1.0
+
+- [ ] Ampliar la matriz de hardware con varios controladores USB, tamaños y
+  firmware UEFI/Legacy, incluyendo una prueba ARM64 cuando haya hardware.
+- [ ] Añadir pruebas de desconexión, capacidad falsa, errores de lectura y
+  recuperación de operaciones para los perfiles raw, Windows y Linux.
+- [ ] Incorporar verificación opcional de checksum publicado y validación de
+  procedencia para imágenes descargadas por el usuario.
+- [ ] Completar la cobertura de integración con UDisks2 y D-Bus privado en CI,
+  sin acceder a dispositivos reales durante las pruebas automatizadas.
+- [ ] Revisar el modelo de amenazas, endurecer el helper Polkit y realizar una
+  auditoría de seguridad de los parsers y rutas de montaje.
+- [ ] Publicar paquetes reproducibles para Fedora, Debian/Ubuntu y openSUSE,
+  con manifiestos SBOM, checksums firmados y notas de migración.
+
+Criterio de salida: Linux USB Creator 1.0 mantiene los flujos raw, Windows y
+Linux persistente en la matriz soportada, supera las pruebas de fallo y
+seguridad, y ofrece paquetes reproducibles con procedencia verificable.
+
 ## Candidatos posteriores
 
 - Guardar un dispositivo USB como imagen.
