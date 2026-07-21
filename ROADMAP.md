@@ -196,9 +196,10 @@ comprobados en hardware real.
   seguro y comandos CLI de inspección/validación/escritura.
 - [x] Añadir pruebas unitarias para detección de perfiles, plan GPT, protocolo
   del helper, copia, configuración persistente y verificación.
-- [ ] Crear el medio Fedora 44 persistente en el Kingston DataTraveler y
-  comprobar en hardware real arranque UEFI, instalación y conservación de un
-  cambio después de dos reinicios.
+- [x] Crear el medio Fedora 44 persistente en el Kingston DataTraveler y
+  comprobar en hardware real el arranque UEFI y la persistencia activa.
+- [ ] Completar la comprobación de instalación y de conservación de un cambio
+  después de dos reinicios del mismo medio persistente.
 - [ ] Generar, instalar y probar los paquetes DEB y RPM 0.6.0 y publicar la
   release firmada después de superar la prueba física.
 

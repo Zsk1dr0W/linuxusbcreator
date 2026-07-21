@@ -100,3 +100,15 @@ llegó al instalador, sin regresiones respecto de 0.5.0.
 El CI `29782579640` compiló y probó 0.5.1 en Debian, Ubuntu, Fedora y openSUSE;
 construyó, instaló y eliminó los paquetes DEB/RPM, generó el tarball reproducible
 y produjo el manifiesto SHA-256 con firma OpenPGP válida.
+
+## M5 — Fedora Live UEFI con persistencia
+
+| Fecha | Versión | Dispositivo | Imagen | Resultado |
+|---|---|---|---|---|
+| 2026-07-21 | 0.6.0, compilación de CI | Kingston DataTraveler 3.0, serie `E0D55E6B6367172049400134` | Fedora Workstation Live 44 x86_64 oficial | Medio ISO UEFI creado desde la aplicación con persistencia activada; arranque UEFI y persistencia comprobados en hardware real |
+
+La creación se realizó mediante el perfil extraído Fedora Live, manteniendo el
+arranque UEFI incluido por la imagen y creando el área de datos persistente.
+Quedan por documentar de forma separada la llegada al instalador y la
+conservación del mismo cambio después de dos reinicios, antes de cerrar por
+completo el criterio físico de M5.
