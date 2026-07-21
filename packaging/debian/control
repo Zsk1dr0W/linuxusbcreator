@@ -15,9 +15,9 @@ Rules-Requires-Root: no
 
 Package: linuxusbcreator
 Architecture: any
-Depends: ${misc:Depends}, ${shlibs:Depends}, 7zip, dosfstools, fdisk, policykit-1, udisks2, wimtools
+Depends: ${misc:Depends}, ${shlibs:Depends}, 7zip, dosfstools, e2fsprogs, fdisk, policykit-1, udisks2, wimtools
 Description: native Linux utility for creating bootable USB media
  Linux USB Creator safely inspects removable USB storage and writes raw images
  through a narrowly scoped Polkit helper with full read-back verification. It
- can also create UEFI/GPT or BIOS/MBR Windows installation media, identify
- image types, report per-stage progress, and split large WIMs.
+ can also create Windows installation media and extracted Fedora Live UEFI
+ media with optional persistence, per-stage progress, and full verification.

@@ -3,6 +3,8 @@ core_sources = files(
   'core/helper-protocol.c',
   'core/image-classifier.c',
   'core/image-writer.c',
+  'core/linux-media.c',
+  'core/linux-target-plan.c',
   'core/operation-log.c',
   'core/windows-image.c',
   'core/windows-bios-boot.c',

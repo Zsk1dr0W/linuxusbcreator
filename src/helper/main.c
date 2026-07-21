@@ -5,6 +5,7 @@
 #include <errno.h>
 #include <gio/gio.h>
 #include <glib/gstdio.h>
+#include <pwd.h>
 #include <stdlib.h>
 #include <signal.h>
 #include <sys/stat.h>
@@ -12,6 +13,7 @@
 
 #include "core/device.h"
 #include "core/image-writer.h"
+#include "core/linux-target-plan.h"
 #include "core/operation-log.h"
 #include "core/windows-bios-boot.h"
 #include "core/windows-target-plan.h"
@@ -214,7 +216,7 @@ wait_for_partition(const gchar *partition_path, GError **error)
         if (operation_cancellable != NULL &&
             g_cancellable_is_cancelled(operation_cancellable)) {
             g_set_error_literal(error, G_IO_ERROR, G_IO_ERROR_CANCELLED,
-                                "Windows media preparation was cancelled");
+                                "Media preparation was cancelled");
             return FALSE;
         }
         if (g_stat(partition_path, &metadata) == 0 && S_ISBLK(metadata.st_mode))
@@ -222,9 +224,165 @@ wait_for_partition(const gchar *partition_path, GError **error)
         g_usleep(100000);
     }
     g_set_error(error, G_IO_ERROR, G_IO_ERROR_TIMED_OUT,
-                "Partition did not appear after creating the GPT: %s",
+                "Partition did not appear after creating the partition table: %s",
                 partition_path);
     return FALSE;
+}
+
+static gboolean
+get_calling_user(gchar **root_owner, GError **error)
+{
+    const gchar *text = g_getenv("PKEXEC_UID");
+    gchar *end = NULL;
+    guint64 value;
+    struct passwd *account;
+
+    if (text == NULL || text[0] == '\0') {
+        g_set_error_literal(error, G_IO_ERROR, G_IO_ERROR_PERMISSION_DENIED,
+                            "Polkit did not report the calling user");
+        return FALSE;
+    }
+    errno = 0;
+    value = g_ascii_strtoull(text, &end, 10);
+    if (errno != 0 || end == text || *end != '\0' || value == 0 ||
+        value > G_MAXUINT32) {
+        g_set_error_literal(error, G_IO_ERROR, G_IO_ERROR_PERMISSION_DENIED,
+                            "Polkit reported an invalid calling user");
+        return FALSE;
+    }
+    account = getpwuid((uid_t)value);
+    if (account == NULL || account->pw_uid != (uid_t)value) {
+        g_set_error_literal(error, G_IO_ERROR, G_IO_ERROR_PERMISSION_DENIED,
+                            "Unable to resolve the calling user");
+        return FALSE;
+    }
+    *root_owner = g_strdup_printf("root_owner=%u:%u",
+                                  (guint)account->pw_uid,
+                                  (guint)account->pw_gid);
+    return TRUE;
+}
+
+static int
+run_prepare_linux(const gchar *device_path,
+                  const gchar *expected_serial,
+                  guint64 expected_size)
+{
+    static const gchar *const sfdisk_candidates[] = {
+        "/usr/sbin/sfdisk", "/usr/bin/sfdisk", "/sbin/sfdisk", NULL,
+    };
+    static const gchar *const mkfs_fat_candidates[] = {
+        "/usr/sbin/mkfs.fat", "/usr/bin/mkfs.fat", "/sbin/mkfs.fat", NULL,
+    };
+    static const gchar *const mkfs_ext4_candidates[] = {
+        "/usr/sbin/mkfs.ext4", "/usr/bin/mkfs.ext4", "/sbin/mkfs.ext4", NULL,
+    };
+    g_autoptr(GError) error = NULL;
+    g_autoptr(LucDeviceMonitor) monitor = NULL;
+    g_autoptr(LucDevice) device = NULL;
+    g_autofree gchar *sfdisk = NULL;
+    g_autofree gchar *mkfs_fat = NULL;
+    g_autofree gchar *mkfs_ext4 = NULL;
+    g_autofree gchar *boot_partition = NULL;
+    g_autofree gchar *data_partition = NULL;
+    g_autofree gchar *root_owner = NULL;
+    const gchar *sfdisk_argv[7];
+    const gchar *fat_argv[7];
+    const gchar *ext4_argv[8];
+
+    if (expected_size <= LUC_LINUX_BOOT_SIZE_BYTES +
+                             LUC_LINUX_FILESYSTEM_OVERHEAD) {
+        g_set_error_literal(&error, G_IO_ERROR, G_IO_ERROR_NO_SPACE,
+                            "USB device is too small for Fedora ISO mode");
+        goto failed;
+    }
+    if (!is_whole_block_device(device_path, &error) ||
+        !get_calling_user(&root_owner, &error))
+        goto failed;
+    sfdisk = find_trusted_tool(sfdisk_candidates, &error);
+    mkfs_fat = find_trusted_tool(mkfs_fat_candidates, &error);
+    mkfs_ext4 = find_trusted_tool(mkfs_ext4_candidates, &error);
+    if (sfdisk == NULL || mkfs_fat == NULL || mkfs_ext4 == NULL)
+        goto failed;
+    monitor = luc_device_monitor_new(&error);
+    if (monitor == NULL)
+        goto failed;
+    device = luc_device_monitor_find_device(monitor, device_path);
+    if (!luc_device_validate_confirmation(device, expected_serial, expected_size,
+                                          FALSE, &error) ||
+        !luc_device_monitor_unmount_drive(monitor, device->drive_path, &error))
+        goto failed;
+    g_clear_object(&monitor);
+    g_clear_pointer(&device, luc_device_free);
+    monitor = luc_device_monitor_new(&error);
+    if (monitor == NULL)
+        goto failed;
+    device = luc_device_monitor_find_device(monitor, device_path);
+    if (!luc_device_validate_confirmation(device, expected_serial, expected_size,
+                                          TRUE, &error))
+        goto failed;
+
+    luc_operation_log_append(OPERATION_LOG, "linux-iso-prepare", "started", "",
+                             device_path, expected_size, "", NULL);
+    g_print("{\"event\":\"phase\",\"name\":\"partitioning\"}\n");
+    g_print("{\"event\":\"progress\",\"completed\":0,\"total\":1}\n");
+    fflush(stdout);
+    sfdisk_argv[0] = sfdisk;
+    sfdisk_argv[1] = "--wipe";
+    sfdisk_argv[2] = "always";
+    sfdisk_argv[3] = "--wipe-partitions";
+    sfdisk_argv[4] = "always";
+    sfdisk_argv[5] = device_path;
+    sfdisk_argv[6] = NULL;
+    if (!run_fixed_tool(sfdisk_argv, luc_linux_target_sfdisk_plan(), &error))
+        goto failed_logged;
+    boot_partition = luc_linux_target_partition_path(device_path, 1, &error);
+    data_partition = luc_linux_target_partition_path(device_path, 2, &error);
+    if (boot_partition == NULL || data_partition == NULL ||
+        !wait_for_partition(boot_partition, &error) ||
+        !wait_for_partition(data_partition, &error))
+        goto failed_logged;
+    g_print("{\"event\":\"progress\",\"completed\":1,\"total\":1}\n");
+    g_print("{\"event\":\"phase\",\"name\":\"formatting\"}\n");
+    g_print("{\"event\":\"progress\",\"completed\":0,\"total\":2}\n");
+    fflush(stdout);
+    fat_argv[0] = mkfs_fat;
+    fat_argv[1] = "-F";
+    fat_argv[2] = "32";
+    fat_argv[3] = "-n";
+    fat_argv[4] = LUC_LINUX_BOOT_LABEL;
+    fat_argv[5] = boot_partition;
+    fat_argv[6] = NULL;
+    if (!run_fixed_tool(fat_argv, NULL, &error))
+        goto failed_logged;
+    g_print("{\"event\":\"progress\",\"completed\":1,\"total\":2}\n");
+    fflush(stdout);
+    ext4_argv[0] = mkfs_ext4;
+    ext4_argv[1] = "-F";
+    ext4_argv[2] = "-L";
+    ext4_argv[3] = LUC_LINUX_DATA_LABEL;
+    ext4_argv[4] = "-E";
+    ext4_argv[5] = root_owner;
+    ext4_argv[6] = data_partition;
+    ext4_argv[7] = NULL;
+    if (!run_fixed_tool(ext4_argv, NULL, &error))
+        goto failed_logged;
+    g_print("{\"event\":\"progress\",\"completed\":2,\"total\":2}\n");
+    fflush(stdout);
+    sync();
+    luc_operation_log_append(OPERATION_LOG, "linux-iso-prepare", "completed", "",
+                             device_path, expected_size, "", NULL);
+    g_print("{\"event\":\"prepared-linux\",\"boot_partition\":\"%s\","
+            "\"data_partition\":\"%s\"}\n",
+            boot_partition, data_partition);
+    return EXIT_SUCCESS;
+
+failed_logged:
+    luc_operation_log_append(OPERATION_LOG, "linux-iso-prepare", "failed", "",
+                             device_path, expected_size, "", NULL);
+failed:
+    g_printerr("linuxusbcreator-helper: %s\n",
+               error != NULL ? error->message : "unknown error");
+    return EXIT_FAILURE;
 }
 
 static int
@@ -362,11 +520,26 @@ main(int argc, char **argv)
         g_clear_object(&operation_cancellable);
         return result;
     }
+    if (argc == 5 && g_str_equal(argv[1], "prepare-linux")) {
+        errno = 0;
+        expected_size = g_ascii_strtoull(argv[4], &end, 10);
+        if (errno != 0 || end == argv[4] || *end != '\0' || expected_size == 0) {
+            g_printerr("Invalid expected device size.\n");
+            return EXIT_FAILURE;
+        }
+        operation_cancellable = g_cancellable_new();
+        signal(SIGINT, on_signal);
+        signal(SIGTERM, on_signal);
+        int result = run_prepare_linux(argv[2], argv[3], expected_size);
+        g_clear_object(&operation_cancellable);
+        return result;
+    }
     if (argc != 8 || !g_str_equal(argv[1], "write") ||
         !g_str_equal(argv[6], "--verify")) {
         g_printerr("Usage:\n"
                    "  linuxusbcreator-helper write IMAGE DEVICE SERIAL SIZE --verify yes|no\n"
-                   "  linuxusbcreator-helper prepare-windows DEVICE SERIAL SIZE uefi|bios\n");
+                   "  linuxusbcreator-helper prepare-windows DEVICE SERIAL SIZE uefi|bios\n"
+                   "  linuxusbcreator-helper prepare-linux DEVICE SERIAL SIZE\n");
         return EXIT_FAILURE;
     }
     errno = 0;

@@ -1,0 +1,12 @@
+Path = Fedora-Legal-README.txt
+Folder = -
+Path = EFI/BOOT/BOOTX64.EFI
+Folder = -
+Path = EFI/BOOT/grub.cfg
+Folder = -
+Path = boot/0xf20784ad
+Folder = -
+Path = boot/grub2/grub.cfg
+Folder = -
+Path = LiveOS/squashfs.img
+Folder = -

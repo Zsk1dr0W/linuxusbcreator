@@ -52,6 +52,19 @@ test_prepared_partition(void)
         &partition));
 }
 
+static void
+test_linux_prepared_partitions(void)
+{
+    g_autofree gchar *boot = NULL;
+    g_autofree gchar *data = NULL;
+
+    g_assert_true(luc_helper_parse_linux_prepared(
+        "{\"event\":\"prepared-linux\",\"boot_partition\":\"/dev/sdb1\","
+        "\"data_partition\":\"/dev/sdb2\"}", &boot, &data));
+    g_assert_cmpstr(boot, ==, "/dev/sdb1");
+    g_assert_cmpstr(data, ==, "/dev/sdb2");
+}
+
 int
 main(int argc, char **argv)
 {
@@ -60,5 +73,7 @@ main(int argc, char **argv)
     g_test_add_func("/helper-protocol/phases", test_phases);
     g_test_add_func("/helper-protocol/reject-invalid", test_rejects_invalid_progress);
     g_test_add_func("/helper-protocol/prepared", test_prepared_partition);
+    g_test_add_func("/helper-protocol/linux-prepared",
+                    test_linux_prepared_partitions);
     return g_test_run();
 }

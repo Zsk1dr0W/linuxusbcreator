@@ -43,6 +43,18 @@ luc_image_kind_to_string(LucImageKind kind)
     }
 }
 
+const gchar *
+luc_linux_profile_to_string(LucLinuxProfile profile)
+{
+    switch (profile) {
+    case LUC_LINUX_PROFILE_FEDORA_LIVE_UEFI:
+        return "fedora-live-uefi";
+    case LUC_LINUX_PROFILE_NONE:
+    default:
+        return "none";
+    }
+}
+
 LucImageClassification *
 luc_image_classify_listing(const gchar *listing)
 {
@@ -55,6 +67,13 @@ luc_image_classify_listing(const gchar *listing)
         "path = live/filesystem.squashfs", "path = liveos/squashfs.img",
         "path = casper/filesystem.squashfs", "path = arch/boot/",
         "path = images/pxeboot/vmlinuz", NULL,
+    };
+    static const gchar *const fedora_live_uefi_paths[] = {
+        "path = efi/boot/bootx64.efi",
+        "path = efi/boot/grub.cfg",
+        "path = boot/grub2/grub.cfg",
+        "path = liveos/squashfs.img",
+        NULL,
     };
     g_autofree gchar *lower = NULL;
     LucImageClassification *result;
@@ -80,6 +99,18 @@ luc_image_classify_listing(const gchar *listing)
             result->distribution = g_strdup("Arch Linux");
         else
             result->distribution = g_strdup("Linux");
+        if (strstr(lower, "fedora") != NULL &&
+            strstr(lower, "path = liveos/squashfs.img") != NULL) {
+            gboolean complete = TRUE;
+            for (guint i = 0; fedora_live_uefi_paths[i] != NULL; i++) {
+                if (strstr(lower, fedora_live_uefi_paths[i]) == NULL) {
+                    complete = FALSE;
+                    break;
+                }
+            }
+            if (complete)
+                result->linux_profile = LUC_LINUX_PROFILE_FEDORA_LIVE_UEFI;
+        }
     } else {
         result->kind = LUC_IMAGE_KIND_RAW_OR_UNKNOWN;
         result->distribution = g_strdup("Raw/unknown");

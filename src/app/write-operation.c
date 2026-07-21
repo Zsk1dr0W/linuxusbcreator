@@ -14,6 +14,8 @@ struct _LucWriteOperation {
     guint64 device_size;
     gboolean verify;
     gboolean windows_mode;
+    gboolean linux_iso_mode;
+    gboolean linux_persistence;
     LucWindowsFirmware windows_firmware;
     gboolean running;
     gboolean cancelled;
@@ -47,6 +49,23 @@ append_diagnostic(LucWriteOperation *self, const gchar *message)
     if (self->diagnostics->len > 0)
         g_string_append_c(self->diagnostics, '\n');
     g_string_append(self->diagnostics, message);
+}
+
+LucWriteOperation *
+luc_write_operation_new_linux_iso(const gchar *image_path,
+                                  const gchar *device_path,
+                                  const gchar *serial,
+                                  guint64 device_size,
+                                  gboolean persistence)
+{
+    LucWriteOperation *self = luc_write_operation_new(
+        image_path, device_path, serial, device_size, TRUE);
+
+    if (self != NULL) {
+        self->linux_iso_mode = TRUE;
+        self->linux_persistence = persistence;
+    }
+    return self;
 }
 
 LucWriteOperation *
@@ -222,14 +241,19 @@ luc_write_operation_start(LucWriteOperation *self)
     launcher = g_subprocess_launcher_new(G_SUBPROCESS_FLAGS_STDOUT_PIPE |
                                          G_SUBPROCESS_FLAGS_STDERR_MERGE);
     size = g_strdup_printf("%" G_GUINT64_FORMAT, self->device_size);
-    if (self->windows_mode) {
+    if (self->windows_mode || self->linux_iso_mode) {
         executable = g_file_read_link("/proc/self/exe", &error);
-        if (executable != NULL)
+        if (executable != NULL && self->windows_mode)
             self->process = g_subprocess_launcher_spawn(
                 launcher, &error, executable, "--write-windows",
                 self->image_path, self->device_path, self->serial, size,
                 "--firmware",
                 luc_windows_firmware_to_string(self->windows_firmware), NULL);
+        else if (executable != NULL)
+            self->process = g_subprocess_launcher_spawn(
+                launcher, &error, executable, "--write-linux",
+                self->image_path, self->device_path, self->serial, size,
+                "--persistence", self->linux_persistence ? "yes" : "no", NULL);
     } else {
         self->process = g_subprocess_launcher_spawn(launcher, &error,
                                                     "pkexec", LUC_HELPER_PATH,

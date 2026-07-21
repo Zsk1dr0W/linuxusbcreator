@@ -1,4 +1,4 @@
-.TH LINUXUSBCREATOR 1 "July 2026" "Linux USB Creator 0.5.1" "User Commands"
+.TH LINUXUSBCREATOR 1 "July 2026" "Linux USB Creator 0.6.0" "User Commands"
 .SH NAME
 linuxusbcreator \- inspect USB devices and write verified raw images
 .SH SYNOPSIS
@@ -18,9 +18,16 @@ linuxusbcreator \- inspect USB devices and write verified raw images
 .B linuxusbcreator --validate-windows
 .I IMAGE
 .br
+.B linuxusbcreator --validate-linux
+.I IMAGE
+.br
 .B linuxusbcreator --write-windows
 .I IMAGE DEVICE SERIAL SIZE
 .BI --firmware " uefi|bios"
+.br
+.B linuxusbcreator --write-linux
+.I IMAGE DEVICE SERIAL SIZE
+.BI --persistence " yes|no"
 .br
 .B linuxusbcreator --write-image
 .I IMAGE DEVICE SERIAL SIZE
@@ -34,6 +41,8 @@ When started without options, the graphical interface selects a local ISO/raw
 image and an eligible USB target, requires destructive confirmation, and shows
 write and read-back verification percentages. Supported Windows installers
 offer UEFI/GPT and, for compatible x64 images, BIOS/MBR; both use FAT32.
+Fedora Workstation Live x64 images additionally offer extracted UEFI media with
+optional persistent storage.
 .SH OPTIONS
 .TP
 .B --diagnose
@@ -57,6 +66,10 @@ Mount an ISO through a read-only, autoclearing UDisks2 loop and validate both
 the boot WIM and install WIM/ESD using wimlib. The loop is unmounted and removed
 before the command exits.
 .TP
+.BI --validate-linux " IMAGE"
+Mount an ISO through a read-only UDisks2 loop and validate the Fedora Live x64
+UEFI profile and all required source trees without writing a device.
+.TP
 .BI --write-windows " IMAGE DEVICE SERIAL SIZE --firmware uefi|bios"
 Destroy the confirmed removable USB device and create Windows installation
 media. The ISO is mounted read-only and validated before the helper creates
@@ -64,6 +77,14 @@ UEFI/GPT/FAT32 or BIOS/MBR/FAT32. BIOS is accepted only for images containing
 the x64 legacy boot structure. Files are copied without privileges; an
 oversized install.wim is divided into install.swm fragments with wimlib. The
 fragments and all copied files are verified before the target is unmounted.
+.TP
+.BI --write-linux " IMAGE DEVICE SERIAL SIZE --persistence yes|no"
+Destroy the confirmed removable USB and create extracted Fedora Live UEFI
+media. The fixed GPT contains a FAT32 boot partition and an ext4 LiveOS data
+partition. Fedora's bundled shim and GRUB are preserved. With persistence
+enabled, the ext4 partition provides dracut OverlayFS storage. Every copied
+file and the adapted GRUB configuration are verified before both partitions
+are safely unmounted.
 .TP
 .BI --write-image " IMAGE DEVICE SERIAL SIZE"
 Destroy the contents of the confirmed removable USB device and write IMAGE.
@@ -81,6 +102,9 @@ active swap, mounted filesystems after unmounting, changed serial or capacity,
 and the current system/root disk. For Windows media the helper performs only
 one of the two fixed partitioning preparations; ISO parsing, copying, and WIM processing stay
 in the unprivileged process.
+For Fedora ISO mode the helper similarly accepts only its fixed two-partition
+plan and formats filesystems; ISO parsing, GRUB adaptation, copying, and
+verification remain unprivileged.
 .SH FILES
 .TP
 .I /var/log/linuxusbcreator.jsonl

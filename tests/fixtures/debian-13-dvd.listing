@@ -1,0 +1,8 @@
+Path = .disk/info
+Folder = -
+Path = EFI/BOOT/BOOTX64.EFI
+Folder = -
+Path = install.amd/vmlinuz
+Folder = -
+Path = pool/main
+Folder = +

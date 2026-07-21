@@ -69,6 +69,7 @@ first_mount_point(GDBusInterface *filesystem)
 static GDBusProxy *
 wait_for_filesystem(GDBusObjectManager *manager,
                     const gchar *device_path,
+                    const gchar *filesystem_type,
                     GCancellable *cancellable,
                     GError **error)
 {
@@ -97,7 +98,8 @@ wait_for_filesystem(GDBusObjectManager *manager,
             id_type = proxy_property(block, "IdType");
             if (id_type == NULL ||
                 !g_variant_is_of_type(id_type, G_VARIANT_TYPE_STRING) ||
-                !g_str_equal(g_variant_get_string(id_type, NULL), "vfat"))
+                !g_str_equal(g_variant_get_string(id_type, NULL),
+                             filesystem_type))
                 continue;
             filesystem = g_dbus_object_get_interface(object, UDISKS_FILESYSTEM);
             if (G_IS_DBUS_PROXY(filesystem))
@@ -106,7 +108,8 @@ wait_for_filesystem(GDBusObjectManager *manager,
         g_usleep(100000);
     }
     g_set_error(error, G_IO_ERROR, G_IO_ERROR_TIMED_OUT,
-                "UDisks2 did not expose the FAT32 filesystem: %s", device_path);
+                "UDisks2 did not expose the %s filesystem: %s",
+                filesystem_type, device_path);
     return NULL;
 }
 
@@ -115,12 +118,29 @@ luc_filesystem_mount_open(const gchar *device_path,
                           GCancellable *cancellable,
                           GError **error)
 {
+    return luc_filesystem_mount_open_type(device_path, "vfat", cancellable,
+                                          error);
+}
+
+LucFilesystemMount *
+luc_filesystem_mount_open_type(const gchar *device_path,
+                               const gchar *filesystem_type,
+                               GCancellable *cancellable,
+                               GError **error)
+{
     g_autoptr(LucFilesystemMount) mount = NULL;
     g_autoptr(GVariant) reply = NULL;
     GVariantBuilder options;
     const gchar *path;
 
     g_return_val_if_fail(device_path != NULL, NULL);
+    g_return_val_if_fail(filesystem_type != NULL, NULL);
+    if (!g_str_equal(filesystem_type, "vfat") &&
+        !g_str_equal(filesystem_type, "ext4")) {
+        g_set_error_literal(error, G_IO_ERROR, G_IO_ERROR_INVALID_ARGUMENT,
+                            "Unsupported target filesystem type");
+        return NULL;
+    }
     if (!g_str_has_prefix(device_path, "/dev/") ||
         strchr(device_path + 5, '/') != NULL) {
         g_set_error_literal(error, G_IO_ERROR, G_IO_ERROR_INVALID_ARGUMENT,
@@ -135,6 +155,7 @@ luc_filesystem_mount_open(const gchar *device_path,
     if (mount->manager == NULL)
         return NULL;
     mount->filesystem = wait_for_filesystem(mount->manager, device_path,
+                                            filesystem_type,
                                             cancellable, error);
     if (mount->filesystem == NULL)
         return NULL;

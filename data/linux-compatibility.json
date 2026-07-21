@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "profiles": [
+    {
+      "id": "fedora-live-uefi",
+      "distribution": "Fedora Workstation Live",
+      "architectures": ["x86_64"],
+      "versions_tested": ["43", "44"],
+      "raw_mode": true,
+      "iso_mode": true,
+      "firmware": ["uefi"],
+      "bootloader": "bundled-shim-grub",
+      "persistence": "dracut-overlayfs",
+      "status": "implementation-complete-hardware-pending"
+    },
+    {
+      "id": "generic-linux-raw",
+      "distribution": "Other detected Linux images",
+      "architectures": ["x86_64", "aarch64", "unknown"],
+      "raw_mode": true,
+      "iso_mode": false,
+      "firmware": ["from-image"],
+      "bootloader": "from-image",
+      "persistence": "unsupported",
+      "status": "supported"
+    }
+  ]
+}

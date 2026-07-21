@@ -21,6 +21,7 @@ typedef enum {
     LUC_HELPER_PHASE_FORMATTING,
     LUC_HELPER_PHASE_MOUNTING,
     LUC_HELPER_PHASE_COPYING,
+    LUC_HELPER_PHASE_CONFIGURING,
     LUC_HELPER_PHASE_SPLITTING,
     LUC_HELPER_PHASE_WRITING,
     LUC_HELPER_PHASE_SYNCING,
@@ -36,5 +37,8 @@ typedef struct {
 
 gboolean luc_helper_event_parse(const gchar *line, LucHelperEvent *event);
 gboolean luc_helper_parse_prepared(const gchar *line, gchar **partition_path);
+gboolean luc_helper_parse_linux_prepared(const gchar *line,
+                                         gchar **boot_partition_path,
+                                         gchar **data_partition_path);
 
 G_END_DECLS

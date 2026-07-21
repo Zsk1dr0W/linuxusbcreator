@@ -11,8 +11,25 @@ image_classifier_test = executable(
   files('unit/test-image-classifier.c'),
   include_directories: include_directories('../src'),
   dependencies: [core_dep],
+  c_args: ['-DFIXTURE_DIR="' + meson.current_source_dir() / 'fixtures' + '"'],
 )
 test('image-classifier', image_classifier_test)
+
+linux_target_plan_test = executable(
+  'test-linux-target-plan',
+  files('unit/test-linux-target-plan.c'),
+  include_directories: include_directories('../src'),
+  dependencies: [core_dep],
+)
+test('linux-target-plan', linux_target_plan_test)
+
+linux_media_test = executable(
+  'test-linux-media',
+  files('unit/test-linux-media.c'),
+  include_directories: include_directories('../src'),
+  dependencies: [core_dep],
+)
+test('linux-media', linux_media_test)
 
 image_test = executable(
   'test-image-writer',

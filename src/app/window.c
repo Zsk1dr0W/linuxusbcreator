@@ -8,6 +8,7 @@
 #include "app/write-operation.h"
 #include "core/helper-protocol.h"
 #include "core/image-classifier.h"
+#include "core/linux-target-plan.h"
 #include "core/windows-image.h"
 #include "core/windows-target-plan.h"
 
@@ -23,6 +24,9 @@ struct _LucWindow {
     GtkSwitch *verify_switch;
     GtkWidget *verify_row;
     AdwComboRow *firmware_row;
+    AdwComboRow *linux_mode_row;
+    GtkWidget *persistence_row;
+    GtkSwitch *persistence_switch;
     GtkButton *write_button;
     GtkButton *cancel_button;
     GtkProgressBar *progress;
@@ -36,6 +40,8 @@ struct _LucWindow {
     gboolean operation_active;
     gboolean operation_verify;
     gboolean operation_windows;
+    gboolean operation_linux_iso;
+    gboolean operation_persistence;
     gboolean refreshing;
 };
 
@@ -53,6 +59,15 @@ selected_windows_firmware(LucWindow *self)
     return adw_combo_row_get_selected(self->firmware_row) == 1
                ? LUC_WINDOWS_FIRMWARE_BIOS
                : LUC_WINDOWS_FIRMWARE_UEFI;
+}
+
+static gboolean
+selected_linux_iso_mode(LucWindow *self)
+{
+    return self->classification != NULL &&
+           self->classification->linux_profile ==
+               LUC_LINUX_PROFILE_FEDORA_LIVE_UEFI &&
+           adw_combo_row_get_selected(self->linux_mode_row) == 1;
 }
 
 static gchar *
@@ -145,6 +160,11 @@ update_actions(LucWindow *self)
             G_MAXUINT64 - WINDOWS_FILESYSTEM_OVERHEAD)
         required_size = self->windows_info->content_size +
                         WINDOWS_FILESYSTEM_OVERHEAD;
+    else if (selected_linux_iso_mode(self) &&
+             self->image_size <= G_MAXUINT64 - LUC_LINUX_BOOT_SIZE_BYTES -
+                                     LUC_LINUX_FILESYSTEM_OVERHEAD)
+        required_size = self->image_size + LUC_LINUX_BOOT_SIZE_BYTES +
+                        LUC_LINUX_FILESYSTEM_OVERHEAD;
     gboolean ready = !self->operation_active &&
                      self->image_path != NULL &&
                      self->selected_device != NULL &&
@@ -155,6 +175,8 @@ update_actions(LucWindow *self)
     gtk_widget_set_sensitive(GTK_WIDGET(self->image_button), !self->operation_active);
     gtk_widget_set_sensitive(GTK_WIDGET(self->verify_switch), !self->operation_active);
     gtk_widget_set_sensitive(GTK_WIDGET(self->firmware_row), !self->operation_active);
+    gtk_widget_set_sensitive(GTK_WIDGET(self->linux_mode_row), !self->operation_active);
+    gtk_widget_set_sensitive(self->persistence_row, !self->operation_active);
     gtk_widget_set_sensitive(GTK_WIDGET(self->list), !self->operation_active);
     if (!self->operation_active && self->image_path != NULL &&
         self->selected_device != NULL &&
@@ -163,6 +185,29 @@ update_actions(LucWindow *self)
                              _("The image is larger than the selected device."),
                              "error");
     }
+}
+
+static void
+on_linux_mode_changed(AdwComboRow *row, GParamSpec *spec, LucWindow *self)
+{
+    gboolean iso_mode = selected_linux_iso_mode(self);
+
+    (void)row;
+    (void)spec;
+    gtk_widget_set_visible(self->persistence_row, iso_mode);
+    gtk_widget_set_visible(self->verify_row, !iso_mode);
+    if (iso_mode)
+        set_operation_status(
+            self,
+            _("Fedora ISO mode uses UEFI/GPT, bundled signed GRUB and mandatory file verification."),
+            NULL);
+    else if (self->classification != NULL &&
+             self->classification->kind == LUC_IMAGE_KIND_LINUX_ISO)
+        set_operation_status(
+            self,
+            _("Hybrid/raw mode preserves the image layout and supports BIOS and UEFI when provided by the ISO."),
+            NULL);
+    update_actions(self);
 }
 
 static void
@@ -322,6 +367,8 @@ on_file_selected(GtkNativeDialog *dialog, gint response, LucWindow *self)
                 : _("%s · %s · Windows %s"),
             g_file_info_get_display_name(info), size, architecture);
         gtk_widget_set_visible(self->verify_row, FALSE);
+        gtk_widget_set_visible(GTK_WIDGET(self->linux_mode_row), FALSE);
+        gtk_widget_set_visible(self->persistence_row, FALSE);
         {
             const gchar *profiles_both[] = {_("UEFI · GPT"), _("BIOS · MBR"), NULL};
             const gchar *profiles_uefi[] = {_("UEFI · GPT"), NULL};
@@ -345,6 +392,22 @@ on_file_selected(GtkNativeDialog *dialog, gint response, LucWindow *self)
                                    self->classification->architecture);
         gtk_widget_set_visible(self->verify_row, TRUE);
         gtk_widget_set_visible(GTK_WIDGET(self->firmware_row), FALSE);
+        if (self->classification->linux_profile ==
+            LUC_LINUX_PROFILE_FEDORA_LIVE_UEFI) {
+            const gchar *modes[] = {
+                _("Hybrid/raw · BIOS and UEFI"),
+                _("ISO · Fedora Live UEFI"),
+                NULL,
+            };
+            GtkStringList *model = gtk_string_list_new(modes);
+            adw_combo_row_set_model(self->linux_mode_row, G_LIST_MODEL(model));
+            adw_combo_row_set_selected(self->linux_mode_row, 0);
+            g_object_unref(model);
+            gtk_widget_set_visible(GTK_WIDGET(self->linux_mode_row), TRUE);
+        } else {
+            gtk_widget_set_visible(GTK_WIDGET(self->linux_mode_row), FALSE);
+        }
+        gtk_widget_set_visible(self->persistence_row, FALSE);
         set_operation_status(
             self,
             _("Linux image detected. Hybrid/raw writing with full verification will be used."),
@@ -354,6 +417,8 @@ on_file_selected(GtkNativeDialog *dialog, gint response, LucWindow *self)
                                    g_file_info_get_display_name(info), size);
         gtk_widget_set_visible(self->verify_row, TRUE);
         gtk_widget_set_visible(GTK_WIDGET(self->firmware_row), FALSE);
+        gtk_widget_set_visible(GTK_WIDGET(self->linux_mode_row), FALSE);
+        gtk_widget_set_visible(self->persistence_row, FALSE);
         set_operation_status(self,
                              _("Select a USB device and review verification before continuing."),
                              NULL);
@@ -445,8 +510,21 @@ on_operation_phase(LucWriteOperation *operation, gint phase, LucWindow *self)
         break;
     case LUC_HELPER_PHASE_COPYING:
         gtk_progress_bar_set_fraction(self->progress, 0.0);
-        set_operation_status(self, _("Copying Windows installation files…"), NULL);
+        set_operation_status(
+            self,
+            self->operation_linux_iso
+                ? _("Copying Fedora boot and LiveOS files…")
+                : _("Copying Windows installation files…"), NULL);
         stop_pulsing(self);
+        break;
+    case LUC_HELPER_PHASE_CONFIGURING:
+        set_operation_status(
+            self,
+            self->operation_persistence
+                ? _("Configuring GRUB and persistent OverlayFS…")
+                : _("Configuring GRUB for the extracted Fedora media…"),
+            NULL);
+        gtk_progress_bar_set_fraction(self->progress, 0.0);
         break;
     case LUC_HELPER_PHASE_SPLITTING:
         set_operation_status(self, _("Splitting install.wim for FAT32…"), NULL);
@@ -458,13 +536,21 @@ on_operation_phase(LucWriteOperation *operation, gint phase, LucWindow *self)
         set_operation_status(self, _("Writing the image to the USB device…"), NULL);
         break;
     case LUC_HELPER_PHASE_SYNCING:
-        set_operation_status(self, _("Synchronizing data with the device…"), NULL);
+        set_operation_status(
+            self,
+            self->operation_linux_iso
+                ? _("Synchronizing Fedora media with the device…")
+                : _("Synchronizing data with the device…"), NULL);
         gtk_progress_bar_set_fraction(self->progress, 0.0);
         stop_pulsing(self);
         break;
     case LUC_HELPER_PHASE_VERIFYING:
         gtk_progress_bar_set_fraction(self->progress, 0.0);
-        set_operation_status(self, _("Verifying the image by reading it back…"), NULL);
+        set_operation_status(
+            self,
+            self->operation_linux_iso
+                ? _("Verifying every extracted Fedora file…")
+                : _("Verifying the image by reading it back…"), NULL);
         break;
     case LUC_HELPER_PHASE_NONE:
     default:
@@ -524,6 +610,18 @@ on_operation_finished(LucWriteOperation *operation,
                     ? _("The BIOS/MBR Windows installation media was created successfully. The USB is safely unmounted and can be disconnected.")
                     : _("The UEFI/GPT Windows installation media was created successfully. The USB is safely unmounted and can be disconnected. Reconnect it to browse its files."),
                 "success");
+        } else if (self->operation_linux_iso) {
+            gtk_progress_bar_set_text(
+                self->progress,
+                self->operation_persistence
+                    ? _("Fedora media completed with persistence")
+                    : _("Fedora media completed and verified"));
+            set_operation_status(
+                self,
+                self->operation_persistence
+                    ? _("Fedora Live UEFI media with persistence was created, verified and safely unmounted.")
+                    : _("Fedora Live UEFI media was created, verified and safely unmounted."),
+                "success");
         } else if (self->operation_verify) {
             gtk_progress_bar_set_text(self->progress, _("Completed and verified"));
             set_operation_status(self,
@@ -558,11 +656,19 @@ start_write(LucWindow *self)
 
     self->operation_verify = verify;
     self->operation_windows = self->windows_info != NULL;
+    self->operation_linux_iso = selected_linux_iso_mode(self);
+    self->operation_persistence = self->operation_linux_iso &&
+                                  gtk_switch_get_active(self->persistence_switch);
     if (self->operation_windows)
         self->operation = luc_write_operation_new_windows(
             self->image_path, self->selected_device->device,
             self->selected_device->serial, self->selected_device->size,
             selected_windows_firmware(self));
+    else if (self->operation_linux_iso)
+        self->operation = luc_write_operation_new_linux_iso(
+            self->image_path, self->selected_device->device,
+            self->selected_device->serial, self->selected_device->size,
+            self->operation_persistence);
     else
         self->operation = luc_write_operation_new(
             self->image_path, self->selected_device->device,
@@ -644,6 +750,12 @@ show_confirmation(LucWindow *self)
                 ? _("Target: %s (%s, %s)\nImage: %s\nMode: Windows BIOS/MBR · FAT32")
                 : _("Target: %s (%s, %s)\nImage: %s\nMode: Windows UEFI/GPT · FAT32"),
             device_name, self->selected_device->device, device_size, image_name);
+    else if (selected_linux_iso_mode(self))
+        detail_text = g_strdup_printf(
+            gtk_switch_get_active(self->persistence_switch)
+                ? _("Target: %s (%s, %s)\nImage: %s\nMode: Fedora Live UEFI/GPT · persistent")
+                : _("Target: %s (%s, %s)\nImage: %s\nMode: Fedora Live UEFI/GPT"),
+            device_name, self->selected_device->device, device_size, image_name);
     else
         detail_text = g_strdup_printf(
             _("Target: %s (%s, %s)\nImage: %s"), device_name,
@@ -694,6 +806,11 @@ on_write_clicked(GtkButton *button, LucWindow *self)
                         ? self->windows_info->content_size +
                               WINDOWS_FILESYSTEM_OVERHEAD
                         : (guint64)metadata.st_size;
+    if (selected_linux_iso_mode(self) &&
+        required_size <= G_MAXUINT64 - LUC_LINUX_BOOT_SIZE_BYTES -
+                             LUC_LINUX_FILESYSTEM_OVERHEAD)
+        required_size += LUC_LINUX_BOOT_SIZE_BYTES +
+                         LUC_LINUX_FILESYSTEM_OVERHEAD;
     if (required_size > self->selected_device->size) {
         set_operation_status(self,
                              _("The image is larger than the selected device."),
@@ -823,6 +940,26 @@ luc_window_init(LucWindow *self)
                                 _("Choose the firmware used by the target computer"));
     gtk_widget_set_visible(GTK_WIDGET(self->firmware_row), FALSE);
     gtk_list_box_append(GTK_LIST_BOX(image_list), GTK_WIDGET(self->firmware_row));
+    self->linux_mode_row = ADW_COMBO_ROW(adw_combo_row_new());
+    adw_preferences_row_set_title(ADW_PREFERENCES_ROW(self->linux_mode_row),
+                                  _("Linux writing mode"));
+    adw_action_row_set_subtitle(ADW_ACTION_ROW(self->linux_mode_row),
+                                _("Choose raw compatibility or extracted Fedora UEFI media"));
+    gtk_widget_set_visible(GTK_WIDGET(self->linux_mode_row), FALSE);
+    gtk_list_box_append(GTK_LIST_BOX(image_list), GTK_WIDGET(self->linux_mode_row));
+    g_signal_connect(self->linux_mode_row, "notify::selected",
+                     G_CALLBACK(on_linux_mode_changed), self);
+    self->persistence_row = GTK_WIDGET(adw_action_row_new());
+    adw_preferences_row_set_title(ADW_PREFERENCES_ROW(self->persistence_row),
+                                  _("Persistent Fedora session"));
+    adw_action_row_set_subtitle(ADW_ACTION_ROW(self->persistence_row),
+                                _("Keep Live session changes in the ext4 data partition"));
+    self->persistence_switch = GTK_SWITCH(gtk_switch_new());
+    gtk_widget_set_valign(GTK_WIDGET(self->persistence_switch), GTK_ALIGN_CENTER);
+    adw_action_row_add_suffix(ADW_ACTION_ROW(self->persistence_row),
+                              GTK_WIDGET(self->persistence_switch));
+    gtk_widget_set_visible(self->persistence_row, FALSE);
+    gtk_list_box_append(GTK_LIST_BOX(image_list), self->persistence_row);
     gtk_box_append(GTK_BOX(content), image_list);
     g_signal_connect(self->image_button, "clicked", G_CALLBACK(on_choose_image), self);
 

@@ -182,10 +182,52 @@ comprobados en hardware real.
 
 ## M5 — Modo ISO y persistencia Linux
 
-- [ ] Añadir extracción ISO para imágenes que no puedan usar copia raw.
-- [ ] Gestionar Syslinux/GRUB cuando sea necesario.
-- [ ] Añadir persistencia opcional para distribuciones explícitamente soportadas.
-- [ ] Crear una base de compatibilidad con fixtures y procedencia documentada.
+- [x] Añadir un modo ISO UEFI por extracción para Fedora Workstation Live x64,
+  manteniendo raw/híbrido como opción universal y alternativa segura.
+- [x] Conservar y configurar el shim/GRUB firmado incluido por Fedora; Syslinux
+  no se instala ni se modifica porque el primer perfil extraído es UEFI-only.
+- [x] Añadir persistencia OverlayFS opcional para el perfil Fedora Live,
+  separando arranque FAT32 y datos ext4.
+- [x] Crear una base de compatibilidad legible por herramientas, fixtures sin
+  payload y procedencia documentada para Fedora 43/44 y Debian 13.
+- [x] Mantener el análisis, montaje ISO, copia, adaptación de GRUB y verificación
+  fuera del proceso privilegiado.
+- [x] Añadir progreso real por etapa, cancelación, sincronización, desmontaje
+  seguro y comandos CLI de inspección/validación/escritura.
+- [x] Añadir pruebas unitarias para detección de perfiles, plan GPT, protocolo
+  del helper, copia, configuración persistente y verificación.
+- [ ] Crear el medio Fedora 44 persistente en el Kingston DataTraveler y
+  comprobar en hardware real arranque UEFI, instalación y conservación de un
+  cambio después de dos reinicios.
+- [ ] Generar, instalar y probar los paquetes DEB y RPM 0.6.0 y publicar la
+  release firmada después de superar la prueba física.
+
+Criterio de salida: Fedora Workstation Live 44 puede crearse desde la interfaz
+en modo ISO UEFI, arranca en hardware real, conserva cambios cuando se activa
+persistencia, se desmonta con seguridad y no amplía la superficie privilegiada
+a parsers o contenido de la ISO. El código y la validación estructural están
+completos; la prueba física y los paquetes finales siguen abiertos.
+
+## M6 — Renovación de la interfaz de usuario
+
+- [ ] Sustituir el formulario vertical por un flujo adaptable que funcione en
+  ventanas pequeñas y pantallas HiDPI.
+- [ ] Presentar imagen, destino y perfil en tarjetas con jerarquía visual,
+  detalles expandibles y advertencias específicas del modo elegido.
+- [ ] Añadir una vista de operación dedicada con etapa global, porcentaje,
+  bytes, tiempo transcurrido y diagnóstico exportable.
+- [ ] Mejorar selección de dispositivos, estados vacíos, reconexión y
+  diferencias visuales entre bloqueado, disponible y seleccionado.
+- [ ] Revisar confirmaciones destructivas y mensajes finales sin debilitar la
+  exigencia de identidad ni la autorización Polkit.
+- [ ] Completar navegación por teclado, lectores de pantalla, contraste,
+  tamaños de toque y preferencias de movimiento reducido.
+- [ ] Actualizar capturas AppStream y realizar pruebas de usabilidad en Fedora,
+  Debian/Ubuntu y openSUSE.
+
+Criterio de salida: la interfaz 0.7.0 comunica claramente qué imagen, USB y
+perfil se usarán, sigue siendo operable con teclado y lector de pantalla y no
+introduce regresiones en los flujos raw, Windows o Fedora persistente.
 
 ## Candidatos posteriores
 

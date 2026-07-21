@@ -19,6 +19,11 @@ LucWriteOperation *luc_write_operation_new_windows(const gchar *image_path,
                                                    const gchar *serial,
                                                    guint64 device_size,
                                                    LucWindowsFirmware firmware);
+LucWriteOperation *luc_write_operation_new_linux_iso(const gchar *image_path,
+                                                     const gchar *device_path,
+                                                     const gchar *serial,
+                                                     guint64 device_size,
+                                                     gboolean persistence);
 void luc_write_operation_start(LucWriteOperation *self);
 void luc_write_operation_cancel(LucWriteOperation *self);
 gboolean luc_write_operation_is_running(LucWriteOperation *self);

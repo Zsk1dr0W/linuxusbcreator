@@ -11,10 +11,16 @@ typedef enum {
     LUC_IMAGE_KIND_WINDOWS_ISO,
 } LucImageKind;
 
+typedef enum {
+    LUC_LINUX_PROFILE_NONE,
+    LUC_LINUX_PROFILE_FEDORA_LIVE_UEFI,
+} LucLinuxProfile;
+
 typedef struct {
     LucImageKind kind;
     gchar *distribution;
     gchar *architecture;
+    LucLinuxProfile linux_profile;
 } LucImageClassification;
 
 void luc_image_classification_free(LucImageClassification *classification);
@@ -26,5 +32,6 @@ LucImageClassification *luc_image_classify(const gchar *path,
                                             GCancellable *cancellable,
                                             GError **error);
 const gchar *luc_image_kind_to_string(LucImageKind kind);
+const gchar *luc_linux_profile_to_string(LucLinuxProfile profile);
 
 G_END_DECLS

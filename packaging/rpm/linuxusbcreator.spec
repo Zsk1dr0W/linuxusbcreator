@@ -1,5 +1,5 @@
 Name:           linuxusbcreator
-Version:        0.5.1
+Version:        0.6.0
 Release:        1%{?dist}
 Summary:        Native Linux utility for creating bootable USB media
 License:        GPL-3.0-or-later AND GPL-2.0-or-later
@@ -21,12 +21,13 @@ Requires:       /usr/bin/7z
 Requires:       /usr/bin/wimlib-imagex
 Requires:       /usr/bin/sfdisk
 Requires:       /usr/bin/mkfs.fat
+Requires:       /usr/sbin/mkfs.ext4
 
 %description
 Linux USB Creator is a native Linux utility for safely inspecting removable USB
 devices, writing verified raw images, and creating UEFI/GPT or BIOS/MBR
-Windows installation media with image detection, per-stage progress and
-automatic WIM splitting.
+Windows installation media and extracted Fedora Live UEFI media with optional
+OverlayFS persistence, per-stage progress and complete file verification.
 
 %prep
 %autosetup
@@ -51,9 +52,15 @@ automatic WIM splitting.
 %{_datadir}/icons/hicolor/*/apps/io.github.zsk1dr0w.LinuxUsbCreator.png
 %{_datadir}/polkit-1/actions/io.github.zsk1dr0w.LinuxUsbCreator.policy
 %{_datadir}/locale/*/LC_MESSAGES/linuxusbcreator.mo
+%{_datadir}/linuxusbcreator/linux-compatibility.json
 %{_mandir}/man1/linuxusbcreator.1*
 
 %changelog
+* Mon Jul 20 2026 Víctor Díaz Gonzalez <106137683+Zsk1dr0W@users.noreply.github.com> - 0.6.0-1
+- Add extracted Fedora Live UEFI media with optional OverlayFS persistence
+- Preserve bundled shim/GRUB and verify all extracted files
+- Add compatibility fixtures and documented provenance
+
 * Mon Jul 20 2026 Víctor Díaz Gonzalez <106137683+Zsk1dr0W@users.noreply.github.com> - 0.5.1-1
 - Make UEFI/GPT Windows media visible in Windows and Linux file managers
 - Keep removable-media UEFI boot files while using a Microsoft Basic Data partition

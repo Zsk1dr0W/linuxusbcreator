@@ -41,6 +41,11 @@ install_data(
 
 install_man('linuxusbcreator.1')
 
+install_data(
+  'linux-compatibility.json',
+  install_dir: get_option('datadir') / 'linuxusbcreator',
+)
+
 if find_program('desktop-file-validate', required: false).found()
   test(
     'desktop-file-validate',
