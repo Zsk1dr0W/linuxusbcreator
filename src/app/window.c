@@ -29,9 +29,17 @@ struct _LucWindow {
     GtkSwitch *persistence_switch;
     GtkButton *write_button;
     GtkButton *cancel_button;
+    GtkButton *back_button;
+    GtkButton *export_button;
+    GtkStack *view_stack;
     GtkProgressBar *progress;
+    GtkLabel *setup_status;
     GtkLabel *operation_status;
+    GtkLabel *stage_label;
+    GtkLabel *operation_detail;
+    GtkLabel *elapsed_label;
     gchar *image_path;
+    gchar *last_diagnostics;
     guint64 image_size;
     LucWindowsImageInfo *windows_info;
     LucImageClassification *classification;
@@ -43,6 +51,8 @@ struct _LucWindow {
     gboolean operation_linux_iso;
     gboolean operation_persistence;
     gboolean refreshing;
+    guint elapsed_source;
+    gint64 operation_started;
 };
 
 G_DEFINE_TYPE(LucWindow, luc_window, ADW_TYPE_APPLICATION_WINDOW)
@@ -133,7 +143,7 @@ create_device_row(const LucDevice *device)
     adw_action_row_add_prefix(row, icon);
     gtk_list_box_row_set_selectable(GTK_LIST_BOX_ROW(row), candidate);
     gtk_list_box_row_set_activatable(GTK_LIST_BOX_ROW(row), candidate);
-    gtk_widget_set_sensitive(GTK_WIDGET(row), candidate);
+    gtk_widget_add_css_class(GTK_WIDGET(row), candidate ? "success" : "dim-label");
     g_object_set_data_full(G_OBJECT(row), "luc-device", luc_device_copy(device),
                            (GDestroyNotify)luc_device_free);
     return GTK_WIDGET(row);
@@ -143,11 +153,20 @@ static void
 set_operation_status(LucWindow *self, const gchar *message, const gchar *style)
 {
     gtk_label_set_text(self->operation_status, message);
+    if (self->setup_status != NULL)
+        gtk_label_set_text(self->setup_status, message);
     gtk_widget_remove_css_class(GTK_WIDGET(self->operation_status), "error");
     gtk_widget_remove_css_class(GTK_WIDGET(self->operation_status), "success");
     gtk_widget_remove_css_class(GTK_WIDGET(self->operation_status), "warning");
     if (style != NULL)
         gtk_widget_add_css_class(GTK_WIDGET(self->operation_status), style);
+    if (self->setup_status != NULL) {
+        gtk_widget_remove_css_class(GTK_WIDGET(self->setup_status), "error");
+        gtk_widget_remove_css_class(GTK_WIDGET(self->setup_status), "success");
+        gtk_widget_remove_css_class(GTK_WIDGET(self->setup_status), "warning");
+        if (style != NULL)
+            gtk_widget_add_css_class(GTK_WIDGET(self->setup_status), style);
+    }
 }
 
 static void
@@ -473,27 +492,63 @@ stop_pulsing(LucWindow *self)
     (void)self;
 }
 
+static gboolean
+update_elapsed(gpointer user_data)
+{
+    LucWindow *self = LUC_WINDOW(user_data);
+    gint64 seconds = (g_get_monotonic_time() - self->operation_started) /
+                     G_USEC_PER_SEC;
+    g_autofree gchar *text = g_strdup_printf(_("Elapsed time: %02u:%02u"),
+                                              (guint)(seconds / 60),
+                                              (guint)(seconds % 60));
+
+    gtk_label_set_text(self->elapsed_label, text);
+    return G_SOURCE_CONTINUE;
+}
+
+static void
+stop_elapsed(LucWindow *self)
+{
+    if (self->elapsed_source != 0) {
+        g_source_remove(self->elapsed_source);
+        self->elapsed_source = 0;
+    }
+}
+
 static void
 on_operation_phase(LucWriteOperation *operation, gint phase, LucWindow *self)
 {
+    guint stage = 0;
+    guint stages = self->operation_windows
+                       ? (self->windows_info != NULL &&
+                                  self->windows_info->requires_wim_split
+                              ? 9 : 8)
+                       : (self->operation_linux_iso ? 8 :
+                          (self->operation_verify ? 4 : 3));
+    g_autofree gchar *stage_text = NULL;
+
     (void)operation;
     switch ((LucHelperPhase)phase) {
     case LUC_HELPER_PHASE_HASHING:
+        stage = 1;
         set_operation_status(self, _("Computing the image SHA-256…"), NULL);
         gtk_progress_bar_set_fraction(self->progress, 0.0);
         stop_pulsing(self);
         break;
     case LUC_HELPER_PHASE_VALIDATING:
+        stage = 2;
         set_operation_status(self, _("Validating the Windows installer…"), NULL);
         gtk_progress_bar_set_fraction(self->progress, 0.0);
         stop_pulsing(self);
         break;
     case LUC_HELPER_PHASE_INSPECTING:
+        stage = 1;
         set_operation_status(self, _("Inspecting the selected image…"), NULL);
         gtk_progress_bar_set_fraction(self->progress, 0.0);
         stop_pulsing(self);
         break;
     case LUC_HELPER_PHASE_PARTITIONING:
+        stage = self->operation_windows ? 3 : 2;
         set_operation_status(self,
             selected_windows_firmware(self) == LUC_WINDOWS_FIRMWARE_BIOS
                 ? _("Creating the MBR partition table…")
@@ -501,14 +556,27 @@ on_operation_phase(LucWriteOperation *operation, gint phase, LucWindow *self)
         gtk_progress_bar_set_fraction(self->progress, 0.0);
         break;
     case LUC_HELPER_PHASE_FORMATTING:
-        set_operation_status(self, _("Formatting the Windows partition as FAT32…"), NULL);
+        stage = self->operation_windows ? 4 : 3;
+        set_operation_status(
+            self,
+            self->operation_linux_iso
+                ? _("Formatting the Fedora boot and persistence partitions…")
+                : _("Formatting the Windows partition as FAT32…"),
+            NULL);
         gtk_progress_bar_set_fraction(self->progress, 0.0);
         break;
     case LUC_HELPER_PHASE_MOUNTING:
-        set_operation_status(self, _("Mounting the new Windows target…"), NULL);
+        stage = self->operation_windows ? 5 : 4;
+        set_operation_status(
+            self,
+            self->operation_linux_iso
+                ? _("Mounting the new Fedora target…")
+                : _("Mounting the new Windows target…"),
+            NULL);
         gtk_progress_bar_set_fraction(self->progress, 0.0);
         break;
     case LUC_HELPER_PHASE_COPYING:
+        stage = self->operation_windows ? 6 : 5;
         gtk_progress_bar_set_fraction(self->progress, 0.0);
         set_operation_status(
             self,
@@ -518,6 +586,7 @@ on_operation_phase(LucWriteOperation *operation, gint phase, LucWindow *self)
         stop_pulsing(self);
         break;
     case LUC_HELPER_PHASE_CONFIGURING:
+        stage = 6;
         set_operation_status(
             self,
             self->operation_persistence
@@ -527,15 +596,22 @@ on_operation_phase(LucWriteOperation *operation, gint phase, LucWindow *self)
         gtk_progress_bar_set_fraction(self->progress, 0.0);
         break;
     case LUC_HELPER_PHASE_SPLITTING:
+        stage = 7;
         set_operation_status(self, _("Splitting install.wim for FAT32…"), NULL);
         gtk_progress_bar_set_fraction(self->progress, 0.0);
         break;
     case LUC_HELPER_PHASE_WRITING:
+        stage = 2;
         stop_pulsing(self);
         gtk_progress_bar_set_fraction(self->progress, 0.0);
         set_operation_status(self, _("Writing the image to the USB device…"), NULL);
         break;
     case LUC_HELPER_PHASE_SYNCING:
+        stage = self->operation_windows
+                    ? (self->windows_info != NULL &&
+                               self->windows_info->requires_wim_split
+                           ? 8 : 7)
+                    : (self->operation_linux_iso ? 7 : 3);
         set_operation_status(
             self,
             self->operation_linux_iso
@@ -545,6 +621,7 @@ on_operation_phase(LucWriteOperation *operation, gint phase, LucWindow *self)
         stop_pulsing(self);
         break;
     case LUC_HELPER_PHASE_VERIFYING:
+        stage = stages;
         gtk_progress_bar_set_fraction(self->progress, 0.0);
         set_operation_status(
             self,
@@ -555,6 +632,10 @@ on_operation_phase(LucWriteOperation *operation, gint phase, LucWindow *self)
     case LUC_HELPER_PHASE_NONE:
     default:
         break;
+    }
+    if (stage > 0) {
+        stage_text = g_strdup_printf(_("Stage %u of %u"), stage, stages);
+        gtk_label_set_text(self->stage_label, stage_text);
     }
 }
 
@@ -584,6 +665,7 @@ on_operation_progress(LucWriteOperation *operation,
                                fraction * 100.0);
     }
     gtk_progress_bar_set_text(self->progress, text);
+    gtk_label_set_text(self->operation_detail, text);
 }
 
 static void
@@ -593,11 +675,21 @@ on_operation_finished(LucWriteOperation *operation,
                       const gchar *diagnostics,
                       LucWindow *self)
 {
+    g_autofree gchar *raw_diagnostics = NULL;
+    g_autofree gchar *image_name = NULL;
+    g_autofree gchar *report = NULL;
+
     (void)operation;
+    raw_diagnostics = g_strdup(
+        diagnostics != NULL && diagnostics[0] != '\0'
+            ? diagnostics : _("No additional diagnostic messages."));
     stop_pulsing(self);
+    stop_elapsed(self);
     self->operation_active = FALSE;
     gtk_widget_set_visible(GTK_WIDGET(self->cancel_button), FALSE);
     gtk_widget_set_visible(GTK_WIDGET(self->write_button), TRUE);
+    gtk_widget_set_visible(GTK_WIDGET(self->back_button), TRUE);
+    gtk_widget_set_visible(GTK_WIDGET(self->export_button), TRUE);
     if (success) {
         gtk_progress_bar_set_fraction(self->progress, 1.0);
         if (self->operation_windows) {
@@ -644,6 +736,22 @@ on_operation_finished(LucWriteOperation *operation,
                                  : _("Writing failed without additional information."),
                              "error");
     }
+    image_name = self->image_path != NULL
+                     ? g_path_get_basename(self->image_path)
+                     : g_strdup(_("Unknown image"));
+    report = g_strdup_printf(
+        _("Linux USB Creator operation report\n"
+          "Result: %s\n"
+          "Image: %s\n"
+          "Target: %s\n"
+          "%s\n\n"
+          "Diagnostics:\n%s\n"),
+        gtk_label_get_text(self->operation_status), image_name,
+        self->selected_device != NULL && self->selected_device->device != NULL
+            ? self->selected_device->device : _("Unknown device"),
+        gtk_label_get_text(self->elapsed_label), raw_diagnostics);
+    g_free(self->last_diagnostics);
+    self->last_diagnostics = g_steal_pointer(&report);
     g_clear_object(&self->operation);
     refresh_devices(self);
     update_actions(self);
@@ -680,6 +788,13 @@ start_write(LucWindow *self)
     g_signal_connect(self->operation, "finished",
                      G_CALLBACK(on_operation_finished), self);
     self->operation_active = TRUE;
+    self->operation_started = g_get_monotonic_time();
+    stop_elapsed(self);
+    self->elapsed_source = g_timeout_add_seconds(1, update_elapsed, self);
+    gtk_label_set_text(self->elapsed_label, _("Elapsed time: 00:00"));
+    gtk_label_set_text(self->stage_label, _("Waiting for authorization"));
+    gtk_label_set_text(self->operation_detail, _("Preparing operation…"));
+    gtk_stack_set_visible_child_name(self->view_stack, "operation");
     gtk_progress_bar_set_fraction(self->progress, 0.0);
     gtk_progress_bar_set_text(self->progress, _("Waiting for authorization…"));
     set_operation_status(self,
@@ -687,6 +802,8 @@ start_write(LucWindow *self)
                          NULL);
     gtk_widget_set_visible(GTK_WIDGET(self->write_button), FALSE);
     gtk_widget_set_visible(GTK_WIDGET(self->cancel_button), TRUE);
+    gtk_widget_set_visible(GTK_WIDGET(self->back_button), FALSE);
+    gtk_widget_set_visible(GTK_WIDGET(self->export_button), FALSE);
     update_actions(self);
     luc_write_operation_start(self->operation);
 }
@@ -774,6 +891,8 @@ show_confirmation(LucWindow *self)
     confirm = gtk_button_new_with_label(_("Erase and write"));
     gtk_widget_add_css_class(confirm, "destructive-action");
     gtk_widget_set_sensitive(confirm, FALSE);
+    gtk_entry_set_activates_default(GTK_ENTRY(entry), TRUE);
+    gtk_window_set_default_widget(dialog, confirm);
     gtk_box_append(GTK_BOX(buttons), cancel);
     gtk_box_append(GTK_BOX(buttons), confirm);
     gtk_box_append(GTK_BOX(content), buttons);
@@ -832,6 +951,55 @@ on_cancel_clicked(GtkButton *button, LucWindow *self)
     }
 }
 
+static void
+on_back_clicked(GtkButton *button, LucWindow *self)
+{
+    (void)button;
+    if (!self->operation_active)
+        gtk_stack_set_visible_child_name(self->view_stack, "setup");
+}
+
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+
+static void
+on_export_response(GtkNativeDialog *dialog, gint response, LucWindow *self)
+{
+    if (response == GTK_RESPONSE_ACCEPT) {
+        g_autoptr(GFile) file = gtk_file_chooser_get_file(GTK_FILE_CHOOSER(dialog));
+        g_autofree gchar *path = file != NULL ? g_file_get_path(file) : NULL;
+        g_autoptr(GError) error = NULL;
+        const gchar *diagnostics = self->last_diagnostics != NULL
+                                       ? self->last_diagnostics
+                                       : gtk_label_get_text(self->operation_status);
+
+        if (path == NULL || !g_file_set_contents(path, diagnostics, -1, &error))
+            set_operation_status(self,
+                                 error != NULL ? error->message
+                                               : _("Unable to export diagnostics."),
+                                 "error");
+    }
+    gtk_native_dialog_destroy(dialog);
+    g_object_unref(dialog);
+}
+
+static void
+on_export_clicked(GtkButton *button, LucWindow *self)
+{
+    GtkFileChooserNative *chooser;
+
+    (void)button;
+    chooser = gtk_file_chooser_native_new(_("Export operation diagnostics"),
+                                          GTK_WINDOW(self),
+                                          GTK_FILE_CHOOSER_ACTION_SAVE,
+                                          _("Export"), _("Cancel"));
+    gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER(chooser),
+                                      "linuxusbcreator-diagnostic.txt");
+    g_signal_connect(chooser, "response", G_CALLBACK(on_export_response), self);
+    gtk_native_dialog_show(GTK_NATIVE_DIALOG(chooser));
+}
+
+G_GNUC_END_IGNORE_DEPRECATIONS
+
 static gboolean
 on_close_request(GtkWindow *window, LucWindow *self)
 {
@@ -842,12 +1010,39 @@ on_close_request(GtkWindow *window, LucWindow *self)
     return TRUE;
 }
 
+static gboolean
+on_choose_shortcut(GtkWidget *widget, GVariant *args, gpointer user_data)
+{
+    LucWindow *self = LUC_WINDOW(user_data);
+
+    (void)widget;
+    (void)args;
+    if (self->operation_active)
+        return FALSE;
+    choose_image(self);
+    return TRUE;
+}
+
+static gboolean
+on_write_shortcut(GtkWidget *widget, GVariant *args, gpointer user_data)
+{
+    LucWindow *self = LUC_WINDOW(user_data);
+
+    (void)widget;
+    (void)args;
+    if (!gtk_widget_get_sensitive(GTK_WIDGET(self->write_button)))
+        return FALSE;
+    on_write_clicked(NULL, self);
+    return TRUE;
+}
+
 static void
 luc_window_dispose(GObject *object)
 {
     LucWindow *self = LUC_WINDOW(object);
 
     stop_pulsing(self);
+    stop_elapsed(self);
     if (self->monitor != NULL)
         g_signal_handlers_disconnect_by_data(self->monitor, self);
     if (self->operation != NULL) {
@@ -865,6 +1060,7 @@ luc_window_finalize(GObject *object)
     LucWindow *self = LUC_WINDOW(object);
 
     g_clear_pointer(&self->image_path, g_free);
+    g_clear_pointer(&self->last_diagnostics, g_free);
     g_clear_pointer(&self->windows_info, luc_windows_image_info_free);
     g_clear_pointer(&self->classification, luc_image_classification_free);
     g_clear_pointer(&self->selected_device, luc_device_free);
@@ -896,20 +1092,32 @@ luc_window_init(LucWindow *self)
     AdwToolbarView *toolbar = ADW_TOOLBAR_VIEW(adw_toolbar_view_new());
     AdwHeaderBar *header = ADW_HEADER_BAR(adw_header_bar_new());
     GtkWidget *scroller = gtk_scrolled_window_new();
+    GtkWidget *setup_clamp = adw_clamp_new();
     GtkWidget *content = gtk_box_new(GTK_ORIENTATION_VERTICAL, 12);
     GtkWidget *image_list = gtk_list_box_new();
     GtkWidget *actions = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 8);
+    GtkWidget *operation_scroller = gtk_scrolled_window_new();
+    GtkWidget *operation_clamp = adw_clamp_new();
+    GtkWidget *operation_page = gtk_box_new(GTK_ORIENTATION_VERTICAL, 18);
+    GtkWidget *operation_icon;
+    GtkWidget *operation_title;
+    GtkWidget *operation_actions = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 8);
     GtkWidget *safety;
+    GtkEventController *shortcuts;
+    gboolean animations = TRUE;
 
     gtk_window_set_title(GTK_WINDOW(self), _("Linux USB Creator"));
-    gtk_window_set_default_size(GTK_WINDOW(self), 760, 720);
+    gtk_window_set_default_size(GTK_WINDOW(self), 820, 720);
+    gtk_widget_set_size_request(GTK_WIDGET(self), 360, 480);
     g_signal_connect(self, "close-request", G_CALLBACK(on_close_request), self);
     adw_toolbar_view_add_top_bar(toolbar, GTK_WIDGET(header));
 
-    gtk_widget_set_margin_top(content, 24);
+    adw_clamp_set_maximum_size(ADW_CLAMP(setup_clamp), 860);
+    adw_clamp_set_tightening_threshold(ADW_CLAMP(setup_clamp), 620);
+    gtk_widget_set_margin_top(content, 18);
     gtk_widget_set_margin_bottom(content, 24);
-    gtk_widget_set_margin_start(content, 24);
-    gtk_widget_set_margin_end(content, 24);
+    gtk_widget_set_margin_start(content, 12);
+    gtk_widget_set_margin_end(content, 12);
     gtk_box_append(GTK_BOX(content), section_title(_("1. Select an image")));
 
     gtk_list_box_set_selection_mode(GTK_LIST_BOX(image_list), GTK_SELECTION_NONE);
@@ -919,8 +1127,15 @@ luc_window_init(LucWindow *self)
                                   _("ISO/raw image"));
     adw_action_row_set_subtitle(self->image_row, _("No image selected"));
     self->image_button = GTK_BUTTON(gtk_button_new_with_label(_("Choose…")));
+    gtk_widget_set_tooltip_text(GTK_WIDGET(self->image_button),
+                                _("Choose an image (Ctrl+O)"));
+    gtk_accessible_update_property(
+        GTK_ACCESSIBLE(self->image_button),
+        GTK_ACCESSIBLE_PROPERTY_KEY_SHORTCUTS, "Control+O", -1);
     gtk_widget_set_valign(GTK_WIDGET(self->image_button), GTK_ALIGN_CENTER);
     adw_action_row_add_suffix(self->image_row, GTK_WIDGET(self->image_button));
+    adw_action_row_set_activatable_widget(self->image_row,
+                                          GTK_WIDGET(self->image_button));
     gtk_list_box_append(GTK_LIST_BOX(image_list), GTK_WIDGET(self->image_row));
     self->verify_row = GTK_WIDGET(adw_action_row_new());
     adw_preferences_row_set_title(ADW_PREFERENCES_ROW(self->verify_row),
@@ -932,6 +1147,8 @@ luc_window_init(LucWindow *self)
     gtk_widget_set_valign(GTK_WIDGET(self->verify_switch), GTK_ALIGN_CENTER);
     adw_action_row_add_suffix(ADW_ACTION_ROW(self->verify_row),
                               GTK_WIDGET(self->verify_switch));
+    adw_action_row_set_activatable_widget(ADW_ACTION_ROW(self->verify_row),
+                                          GTK_WIDGET(self->verify_switch));
     gtk_list_box_append(GTK_LIST_BOX(image_list), self->verify_row);
     self->firmware_row = ADW_COMBO_ROW(adw_combo_row_new());
     adw_preferences_row_set_title(ADW_PREFERENCES_ROW(self->firmware_row),
@@ -958,6 +1175,8 @@ luc_window_init(LucWindow *self)
     gtk_widget_set_valign(GTK_WIDGET(self->persistence_switch), GTK_ALIGN_CENTER);
     adw_action_row_add_suffix(ADW_ACTION_ROW(self->persistence_row),
                               GTK_WIDGET(self->persistence_switch));
+    adw_action_row_set_activatable_widget(ADW_ACTION_ROW(self->persistence_row),
+                                          GTK_WIDGET(self->persistence_switch));
     gtk_widget_set_visible(self->persistence_row, FALSE);
     gtk_list_box_append(GTK_LIST_BOX(image_list), self->persistence_row);
     gtk_box_append(GTK_BOX(content), image_list);
@@ -981,30 +1200,107 @@ luc_window_init(LucWindow *self)
     gtk_label_set_wrap(GTK_LABEL(safety), TRUE);
     gtk_widget_add_css_class(safety, "dim-label");
     gtk_box_append(GTK_BOX(content), safety);
+    self->setup_status = GTK_LABEL(gtk_label_new(
+        _("Choose an image and an available USB device.")));
+    gtk_label_set_xalign(self->setup_status, 0.0f);
+    gtk_label_set_wrap(self->setup_status, TRUE);
+    gtk_box_append(GTK_BOX(content), GTK_WIDGET(self->setup_status));
     self->progress = GTK_PROGRESS_BAR(gtk_progress_bar_new());
     gtk_progress_bar_set_show_text(self->progress, TRUE);
     gtk_progress_bar_set_text(self->progress, _("Ready"));
-    gtk_box_append(GTK_BOX(content), GTK_WIDGET(self->progress));
     self->operation_status = GTK_LABEL(gtk_label_new(
         _("Choose an image and an available USB device.")));
     gtk_label_set_xalign(self->operation_status, 0.0f);
     gtk_label_set_wrap(self->operation_status, TRUE);
-    gtk_box_append(GTK_BOX(content), GTK_WIDGET(self->operation_status));
     gtk_widget_set_halign(actions, GTK_ALIGN_END);
     self->cancel_button = GTK_BUTTON(gtk_button_new_with_label(_("Cancel operation")));
     gtk_widget_set_visible(GTK_WIDGET(self->cancel_button), FALSE);
     self->write_button = GTK_BUTTON(gtk_button_new_with_label(_("Write image…")));
+    gtk_widget_set_tooltip_text(GTK_WIDGET(self->write_button),
+                                _("Review and write (Ctrl+Enter)"));
+    gtk_accessible_update_property(
+        GTK_ACCESSIBLE(self->write_button),
+        GTK_ACCESSIBLE_PROPERTY_KEY_SHORTCUTS, "Control+Enter", -1);
     gtk_widget_add_css_class(GTK_WIDGET(self->write_button), "suggested-action");
     gtk_widget_set_sensitive(GTK_WIDGET(self->write_button), FALSE);
-    gtk_box_append(GTK_BOX(actions), GTK_WIDGET(self->cancel_button));
     gtk_box_append(GTK_BOX(actions), GTK_WIDGET(self->write_button));
     gtk_box_append(GTK_BOX(content), actions);
     g_signal_connect(self->write_button, "clicked", G_CALLBACK(on_write_clicked), self);
     g_signal_connect(self->cancel_button, "clicked", G_CALLBACK(on_cancel_clicked), self);
 
-    gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(scroller), content);
-    adw_toolbar_view_set_content(toolbar, scroller);
+    adw_clamp_set_child(ADW_CLAMP(setup_clamp), content);
+    gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(scroller), setup_clamp);
+
+    adw_clamp_set_maximum_size(ADW_CLAMP(operation_clamp), 680);
+    gtk_widget_set_margin_top(operation_page, 48);
+    gtk_widget_set_margin_bottom(operation_page, 32);
+    gtk_widget_set_margin_start(operation_page, 18);
+    gtk_widget_set_margin_end(operation_page, 18);
+    operation_icon = gtk_image_new_from_icon_name("drive-removable-media-usb-symbolic");
+    gtk_image_set_pixel_size(GTK_IMAGE(operation_icon), 64);
+    gtk_widget_set_halign(operation_icon, GTK_ALIGN_CENTER);
+    gtk_box_append(GTK_BOX(operation_page), operation_icon);
+    operation_title = gtk_label_new(_("Creating bootable media"));
+    gtk_widget_add_css_class(operation_title, "title-1");
+    gtk_label_set_wrap(GTK_LABEL(operation_title), TRUE);
+    gtk_label_set_justify(GTK_LABEL(operation_title), GTK_JUSTIFY_CENTER);
+    gtk_box_append(GTK_BOX(operation_page), operation_title);
+    gtk_label_set_xalign(self->operation_status, 0.0f);
+    gtk_box_append(GTK_BOX(operation_page), GTK_WIDGET(self->operation_status));
+    self->stage_label = GTK_LABEL(gtk_label_new(_("Waiting for authorization")));
+    gtk_label_set_xalign(self->stage_label, 0.0f);
+    gtk_widget_add_css_class(GTK_WIDGET(self->stage_label), "heading");
+    gtk_box_append(GTK_BOX(operation_page), GTK_WIDGET(self->stage_label));
+    gtk_box_append(GTK_BOX(operation_page), GTK_WIDGET(self->progress));
+    self->operation_detail = GTK_LABEL(gtk_label_new(_("No bytes processed yet")));
+    gtk_label_set_xalign(self->operation_detail, 0.0f);
+    gtk_widget_add_css_class(GTK_WIDGET(self->operation_detail), "dim-label");
+    gtk_box_append(GTK_BOX(operation_page), GTK_WIDGET(self->operation_detail));
+    self->elapsed_label = GTK_LABEL(gtk_label_new(_("Elapsed time: 00:00")));
+    gtk_label_set_xalign(self->elapsed_label, 0.0f);
+    gtk_widget_add_css_class(GTK_WIDGET(self->elapsed_label), "dim-label");
+    gtk_box_append(GTK_BOX(operation_page), GTK_WIDGET(self->elapsed_label));
+    gtk_widget_set_halign(operation_actions, GTK_ALIGN_END);
+    gtk_box_append(GTK_BOX(operation_actions), GTK_WIDGET(self->cancel_button));
+    self->export_button = GTK_BUTTON(gtk_button_new_with_label(_("Export diagnostics")));
+    gtk_widget_set_visible(GTK_WIDGET(self->export_button), FALSE);
+    gtk_box_append(GTK_BOX(operation_actions), GTK_WIDGET(self->export_button));
+    self->back_button = GTK_BUTTON(gtk_button_new_with_label(_("Back to setup")));
+    gtk_widget_set_visible(GTK_WIDGET(self->back_button), FALSE);
+    gtk_box_append(GTK_BOX(operation_actions), GTK_WIDGET(self->back_button));
+    gtk_box_append(GTK_BOX(operation_page), operation_actions);
+    g_signal_connect(self->back_button, "clicked", G_CALLBACK(on_back_clicked), self);
+    g_signal_connect(self->export_button, "clicked", G_CALLBACK(on_export_clicked), self);
+    adw_clamp_set_child(ADW_CLAMP(operation_clamp), operation_page);
+    gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(operation_scroller), operation_clamp);
+
+    self->view_stack = GTK_STACK(gtk_stack_new());
+    g_object_get(gtk_settings_get_default(), "gtk-enable-animations",
+                 &animations, NULL);
+    gtk_stack_set_transition_type(
+        self->view_stack,
+        animations ? GTK_STACK_TRANSITION_TYPE_CROSSFADE
+                   : GTK_STACK_TRANSITION_TYPE_NONE);
+    gtk_stack_add_named(self->view_stack, scroller, "setup");
+    gtk_stack_add_named(self->view_stack, operation_scroller, "operation");
+    gtk_stack_set_visible_child_name(self->view_stack, "setup");
+    adw_toolbar_view_set_content(toolbar, GTK_WIDGET(self->view_stack));
     adw_application_window_set_content(ADW_APPLICATION_WINDOW(self), GTK_WIDGET(toolbar));
+
+    shortcuts = gtk_shortcut_controller_new();
+    gtk_shortcut_controller_set_scope(GTK_SHORTCUT_CONTROLLER(shortcuts),
+                                      GTK_SHORTCUT_SCOPE_GLOBAL);
+    gtk_shortcut_controller_add_shortcut(
+        GTK_SHORTCUT_CONTROLLER(shortcuts),
+        gtk_shortcut_new(
+            gtk_keyval_trigger_new(GDK_KEY_o, GDK_CONTROL_MASK),
+            gtk_callback_action_new(on_choose_shortcut, self, NULL)));
+    gtk_shortcut_controller_add_shortcut(
+        GTK_SHORTCUT_CONTROLLER(shortcuts),
+        gtk_shortcut_new(
+            gtk_keyval_trigger_new(GDK_KEY_Return, GDK_CONTROL_MASK),
+            gtk_callback_action_new(on_write_shortcut, self, NULL)));
+    gtk_widget_add_controller(GTK_WIDGET(self), shortcuts);
 }
 
 GtkWidget *

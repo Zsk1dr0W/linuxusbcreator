@@ -214,17 +214,17 @@ paquetes finales siguen abiertos.
 
 ## M6 — Renovación de la interfaz de usuario
 
-- [ ] Sustituir el formulario vertical por un flujo adaptable que funcione en
+- [x] Sustituir el formulario vertical por un flujo adaptable que funcione en
   ventanas pequeñas y pantallas HiDPI.
-- [ ] Presentar imagen, destino y perfil en tarjetas con jerarquía visual,
-  detalles expandibles y advertencias específicas del modo elegido.
-- [ ] Añadir una vista de operación dedicada con etapa global, porcentaje,
+- [x] Presentar imagen, destino y perfil en tarjetas con jerarquía visual,
+  detalles contextuales y advertencias específicas del modo elegido.
+- [x] Añadir una vista de operación dedicada con etapa global, porcentaje,
   bytes, tiempo transcurrido y diagnóstico exportable.
-- [ ] Mejorar selección de dispositivos, estados vacíos, reconexión y
+- [x] Mejorar selección de dispositivos, estados vacíos, reconexión y
   diferencias visuales entre bloqueado, disponible y seleccionado.
-- [ ] Revisar confirmaciones destructivas y mensajes finales sin debilitar la
+- [x] Revisar confirmaciones destructivas y mensajes finales sin debilitar la
   exigencia de identidad ni la autorización Polkit.
-- [ ] Completar navegación por teclado, lectores de pantalla, contraste,
+- [x] Completar navegación por teclado, lectores de pantalla, contraste,
   tamaños de toque y preferencias de movimiento reducido.
 - [ ] Actualizar capturas AppStream y realizar pruebas de usabilidad en Fedora,
   Debian/Ubuntu y openSUSE.
@@ -232,6 +232,10 @@ paquetes finales siguen abiertos.
 Criterio de salida: la interfaz 0.7.0 comunica claramente qué imagen, USB y
 perfil se usarán, sigue siendo operable con teclado y lector de pantalla y no
 introduce regresiones en los flujos raw, Windows o Fedora persistente.
+
+Estado: la implementación y la suite automatizada de 0.7.0 están completas.
+Quedan abiertas únicamente las capturas AppStream y las pruebas manuales de
+usabilidad en las tres familias de distribución antes de cerrar M6.
 
 ## M7 — Robustez, compatibilidad y preparación 1.0
 

@@ -1,3 +1,11 @@
+linuxusbcreator (0.7.0-1) unstable; urgency=medium
+
+  * Renew the graphical interface with an adaptive, task-oriented workflow.
+  * Improve device states, destructive confirmation and operation feedback.
+  * Preserve the existing raw, Windows and Fedora Live creation profiles.
+
+ -- Víctor Díaz Gonzalez <106137683+Zsk1dr0W@users.noreply.github.com>  Tue, 21 Jul 2026 12:00:00 -0400
+
 linuxusbcreator (0.6.0-1) unstable; urgency=medium
 
   * Add an extracted Fedora Workstation Live x64 UEFI profile.

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: linuxusbcreator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-20 17:36-0400\n"
+"POT-Creation-Date: 2026-07-21 20:12-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,317 +18,438 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
-#: src/app/main.c:38
+#: src/app/main.c:44
 msgid "Usage:"
 msgstr ""
 
-#: src/app/main.c:47
+#: src/app/main.c:55
 msgid "Commands:"
 msgstr ""
 
-#: src/app/main.c:48
+#: src/app/main.c:56
 msgid "Print detected devices and eligibility as JSON"
 msgstr ""
 
-#: src/app/main.c:49
+#: src/app/main.c:57
 msgid "Compute SHA-256 for a regular image file"
 msgstr ""
 
-#: src/app/main.c:50
+#: src/app/main.c:58
 msgid "Identify a Linux, Windows, or raw/unknown image as JSON"
 msgstr ""
 
-#: src/app/main.c:51
+#: src/app/main.c:59
 msgid "Inspect a Windows ISO9660/UDF installer as JSON"
 msgstr ""
 
-#: src/app/main.c:52
+#: src/app/main.c:60
 msgid "Mount read-only and validate Windows WIM/ESD payloads"
 msgstr ""
 
-#: src/app/main.c:53
+#: src/app/main.c:61
+msgid "Mount read-only and validate the Fedora Live ISO profile"
+msgstr ""
+
+#: src/app/main.c:62
 msgid "Create verified Windows installation media for UEFI/GPT or BIOS/MBR"
 msgstr ""
 
-#: src/app/main.c:54
+#: src/app/main.c:63
+msgid "Create verified Fedora Live UEFI media with optional persistence"
+msgstr ""
+
+#: src/app/main.c:64
 msgid "Write and verify an image on a confirmed USB device"
 msgstr ""
 
-#: src/app/main.c:55
+#: src/app/main.c:65
 msgid "Skip read-back verification (not recommended)"
 msgstr ""
 
-#: src/app/main.c:56
+#: src/app/main.c:66
 msgid "Options:"
 msgstr ""
 
-#: src/app/main.c:57
+#: src/app/main.c:67
 msgid "Show this help"
 msgstr ""
 
-#: src/app/main.c:58
+#: src/app/main.c:68
 msgid "Show program version"
 msgstr ""
 
-#: src/app/window.c:47
+#: src/app/window.c:63
 msgid "ERASE"
 msgstr ""
 
-#: src/app/window.c:69
+#: src/app/window.c:94
 msgid "Available; its partitions will be unmounted before writing"
 msgstr ""
 
-#: src/app/window.c:70
+#: src/app/window.c:95
 msgid "Available for writing"
 msgstr ""
 
-#: src/app/window.c:73
+#: src/app/window.c:98
 msgid "Blocked: the device does not report a stable serial number"
 msgstr ""
 
-#: src/app/window.c:76
+#: src/app/window.c:101
 msgid "Blocked: no media is available"
 msgstr ""
 
-#: src/app/window.c:78
+#: src/app/window.c:103
 msgid "Blocked: no block device is available"
 msgstr ""
 
-#: src/app/window.c:80
+#: src/app/window.c:105
 msgid "Blocked: this is not a USB device"
 msgstr ""
 
-#: src/app/window.c:82
+#: src/app/window.c:107
 msgid "Blocked: the device is not removable"
 msgstr ""
 
-#: src/app/window.c:84
+#: src/app/window.c:109
 msgid "Blocked: contains the current operating system"
 msgstr ""
 
-#: src/app/window.c:86
+#: src/app/window.c:111
 msgid "Blocked: contains active swap"
 msgstr ""
 
-#: src/app/window.c:88
+#: src/app/window.c:113
 msgid "Blocked: the device is read-only"
 msgstr ""
 
-#: src/app/window.c:90
+#: src/app/window.c:115
 msgid "Blocked: unsupported device type"
 msgstr ""
 
-#: src/app/window.c:94
+#: src/app/window.c:119
 msgid "Blocked by the safety policy"
 msgstr ""
 
-#: src/app/window.c:110
+#: src/app/window.c:135
 msgid "no block node"
 msgstr ""
 
-#: src/app/window.c:163 src/app/window.c:699
+#: src/app/window.c:204 src/app/window.c:935
 msgid "The image is larger than the selected device."
 msgstr ""
 
-#: src/app/window.c:213
+#: src/app/window.c:221
+msgid ""
+"Fedora ISO mode uses UEFI/GPT, bundled signed GRUB and mandatory file "
+"verification."
+msgstr ""
+
+#: src/app/window.c:227
+msgid ""
+"Hybrid/raw mode preserves the image layout and supports BIOS and UEFI when "
+"provided by the ISO."
+msgstr ""
+
+#: src/app/window.c:277
 msgid "UDisks2 did not report any storage devices."
 msgstr ""
 
-#: src/app/window.c:216
+#: src/app/window.c:280
 #, c-format
 msgid "%u device detected; %u USB available for writing."
 msgid_plural "%u devices detected; %u USB devices available for writing."
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/app/window.c:276
+#: src/app/window.c:340
 msgid "Select a regular local image file."
 msgstr ""
 
-#: src/app/window.c:289
+#: src/app/window.c:353
 msgid "The Windows image could not be inspected safely."
 msgstr ""
 
-#: src/app/window.c:302
+#: src/app/window.c:366
 msgid "This Windows image is not compatible with the supported FAT32 profiles."
 msgstr ""
 
-#: src/app/window.c:321
+#: src/app/window.c:385
 #, c-format
 msgid "%s · %s · Windows %s · install.wim will be split"
 msgstr ""
 
-#: src/app/window.c:322
+#: src/app/window.c:386
 #, c-format
 msgid "%s · %s · Windows %s"
 msgstr ""
 
-#: src/app/window.c:326 src/app/window.c:327
+#: src/app/window.c:392 src/app/window.c:393
 msgid "UEFI · GPT"
 msgstr ""
 
-#: src/app/window.c:326
+#: src/app/window.c:392
 msgid "BIOS · MBR"
 msgstr ""
 
-#: src/app/window.c:338
+#: src/app/window.c:404
 msgid ""
 "Windows installer detected. Choose UEFI/GPT or BIOS/MBR; files will be "
 "verified."
 msgstr ""
 
-#: src/app/window.c:342
+#: src/app/window.c:408
 #, c-format
 msgid "%s · %s · %s · %s"
 msgstr ""
 
-#: src/app/window.c:350
+#: src/app/window.c:417
+msgid "Hybrid/raw · BIOS and UEFI"
+msgstr ""
+
+#: src/app/window.c:418
+msgid "ISO · Fedora Live UEFI"
+msgstr ""
+
+#: src/app/window.c:432
 msgid ""
 "Linux image detected. Hybrid/raw writing with full verification will be used."
 msgstr ""
 
-#: src/app/window.c:353
+#: src/app/window.c:435
 #, c-format
 msgid "%s · %s · Raw or unrecognized image"
 msgstr ""
 
-#: src/app/window.c:358
+#: src/app/window.c:442
 msgid "Select a USB device and review verification before continuing."
 msgstr ""
 
-#: src/app/window.c:376
+#: src/app/window.c:460
 msgid "Select disk image"
 msgstr ""
 
-#: src/app/window.c:379
+#: src/app/window.c:463
 msgid "Select"
 msgstr ""
 
-#: src/app/window.c:379 src/app/window.c:661
+#: src/app/window.c:463 src/app/window.c:890 src/app/window.c:994
 msgid "Cancel"
 msgstr ""
 
-#: src/app/window.c:381
+#: src/app/window.c:465
 msgid "Disk images (*.iso, *.img, *.raw)"
 msgstr ""
 
-#: src/app/window.c:389
+#: src/app/window.c:473
 msgid "All files"
 msgstr ""
 
-#: src/app/window.c:417
+#: src/app/window.c:501
+#, c-format
+msgid "Elapsed time: %02u:%02u"
+msgstr ""
+
+#: src/app/window.c:534
 msgid "Computing the image SHA-256…"
 msgstr ""
 
-#: src/app/window.c:422
+#: src/app/window.c:540
 msgid "Validating the Windows installer…"
 msgstr ""
 
-#: src/app/window.c:427
+#: src/app/window.c:546
 msgid "Inspecting the selected image…"
 msgstr ""
 
-#: src/app/window.c:434
+#: src/app/window.c:554
 msgid "Creating the MBR partition table…"
 msgstr ""
 
-#: src/app/window.c:435
+#: src/app/window.c:555
 msgid "Creating the GPT partition table…"
 msgstr ""
 
-#: src/app/window.c:439
+#: src/app/window.c:563
+msgid "Formatting the Fedora boot and persistence partitions…"
+msgstr ""
+
+#: src/app/window.c:564
 msgid "Formatting the Windows partition as FAT32…"
 msgstr ""
 
-#: src/app/window.c:443
+#: src/app/window.c:573
+msgid "Mounting the new Fedora target…"
+msgstr ""
+
+#: src/app/window.c:574
 msgid "Mounting the new Windows target…"
 msgstr ""
 
-#: src/app/window.c:448
+#: src/app/window.c:584
+msgid "Copying Fedora boot and LiveOS files…"
+msgstr ""
+
+#: src/app/window.c:585
 msgid "Copying Windows installation files…"
 msgstr ""
 
-#: src/app/window.c:452
+#: src/app/window.c:593
+msgid "Configuring GRUB and persistent OverlayFS…"
+msgstr ""
+
+#: src/app/window.c:594
+msgid "Configuring GRUB for the extracted Fedora media…"
+msgstr ""
+
+#: src/app/window.c:600
 msgid "Splitting install.wim for FAT32…"
 msgstr ""
 
-#: src/app/window.c:458
+#: src/app/window.c:607
 msgid "Writing the image to the USB device…"
 msgstr ""
 
-#: src/app/window.c:461
+#: src/app/window.c:618
+msgid "Synchronizing Fedora media with the device…"
+msgstr ""
+
+#: src/app/window.c:619
 msgid "Synchronizing data with the device…"
 msgstr ""
 
-#: src/app/window.c:467
+#: src/app/window.c:629
+msgid "Verifying every extracted Fedora file…"
+msgstr ""
+
+#: src/app/window.c:630
 msgid "Verifying the image by reading it back…"
 msgstr ""
 
-#: src/app/window.c:520
+#: src/app/window.c:637
+#, c-format
+msgid "Stage %u of %u"
+msgstr ""
+
+#: src/app/window.c:685
+msgid "No additional diagnostic messages."
+msgstr ""
+
+#: src/app/window.c:698
 msgid "Windows media completed, verified and safely unmounted"
 msgstr ""
 
-#: src/app/window.c:524
+#: src/app/window.c:702
 msgid ""
 "The BIOS/MBR Windows installation media was created successfully. The USB is "
 "safely unmounted and can be disconnected."
 msgstr ""
 
-#: src/app/window.c:525
+#: src/app/window.c:703
 msgid ""
 "The UEFI/GPT Windows installation media was created successfully. The USB is "
 "safely unmounted and can be disconnected. Reconnect it to browse its files."
 msgstr ""
 
-#: src/app/window.c:528
+#: src/app/window.c:709
+msgid "Fedora media completed with persistence"
+msgstr ""
+
+#: src/app/window.c:710
+msgid "Fedora media completed and verified"
+msgstr ""
+
+#: src/app/window.c:714
+msgid ""
+"Fedora Live UEFI media with persistence was created, verified and safely "
+"unmounted."
+msgstr ""
+
+#: src/app/window.c:715
+msgid "Fedora Live UEFI media was created, verified and safely unmounted."
+msgstr ""
+
+#: src/app/window.c:718
 msgid "Completed and verified"
 msgstr ""
 
-#: src/app/window.c:530
+#: src/app/window.c:720
 msgid "The image was written and verified successfully."
 msgstr ""
 
-#: src/app/window.c:533
+#: src/app/window.c:723
 msgid "Completed"
 msgstr ""
 
-#: src/app/window.c:535
+#: src/app/window.c:725
 msgid "The image was written without read-back verification."
 msgstr ""
 
-#: src/app/window.c:539
+#: src/app/window.c:729
 msgid "Cancelled"
 msgstr ""
 
-#: src/app/window.c:540
+#: src/app/window.c:730
 msgid "The operation was cancelled."
 msgstr ""
 
-#: src/app/window.c:542
+#: src/app/window.c:732
 msgid "Failed"
 msgstr ""
 
-#: src/app/window.c:546
+#: src/app/window.c:736
 msgid "Writing failed without additional information."
 msgstr ""
 
-#: src/app/window.c:578
+#: src/app/window.c:741
+msgid "Unknown image"
+msgstr ""
+
+#: src/app/window.c:743
+#, c-format
+msgid ""
+"Linux USB Creator operation report\n"
+"Result: %s\n"
+"Image: %s\n"
+"Target: %s\n"
+"%s\n"
+"\n"
+"Diagnostics:\n"
+"%s\n"
+msgstr ""
+
+#: src/app/window.c:751
+msgid "Unknown device"
+msgstr ""
+
+#: src/app/window.c:794 src/app/window.c:1259
+msgid "Elapsed time: 00:00"
+msgstr ""
+
+#: src/app/window.c:795 src/app/window.c:1250
+msgid "Waiting for authorization"
+msgstr ""
+
+#: src/app/window.c:796
+msgid "Preparing operation…"
+msgstr ""
+
+#: src/app/window.c:799
 msgid "Waiting for authorization…"
 msgstr ""
 
-#: src/app/window.c:580
+#: src/app/window.c:801
 msgid "Authorize the limited Linux USB Creator helper."
 msgstr ""
 
-#: src/app/window.c:617
+#: src/app/window.c:840
 msgid "This operation will destroy all data on the USB device"
 msgstr ""
 
-#: src/app/window.c:629
+#: src/app/window.c:852
 msgid "Confirm destructive write"
 msgstr ""
 
-#: src/app/window.c:644
+#: src/app/window.c:867
 #, c-format
 msgid ""
 "Target: %s (%s, %s)\n"
@@ -336,7 +457,7 @@ msgid ""
 "Mode: Windows BIOS/MBR · FAT32"
 msgstr ""
 
-#: src/app/window.c:645
+#: src/app/window.c:868
 #, c-format
 msgid ""
 "Target: %s (%s, %s)\n"
@@ -344,95 +465,163 @@ msgid ""
 "Mode: Windows UEFI/GPT · FAT32"
 msgstr ""
 
-#: src/app/window.c:649
+#: src/app/window.c:873
+#, c-format
+msgid ""
+"Target: %s (%s, %s)\n"
+"Image: %s\n"
+"Mode: Fedora Live UEFI/GPT · persistent"
+msgstr ""
+
+#: src/app/window.c:874
+#, c-format
+msgid ""
+"Target: %s (%s, %s)\n"
+"Image: %s\n"
+"Mode: Fedora Live UEFI/GPT"
+msgstr ""
+
+#: src/app/window.c:878
 #, c-format
 msgid ""
 "Target: %s (%s, %s)\n"
 "Image: %s"
 msgstr ""
 
-#: src/app/window.c:655
+#: src/app/window.c:884
 msgid "Type ERASE to confirm:"
 msgstr ""
 
-#: src/app/window.c:662
+#: src/app/window.c:891
 msgid "Erase and write"
 msgstr ""
 
-#: src/app/window.c:689
+#: src/app/window.c:920
 msgid "The image no longer exists or is no longer a regular file."
 msgstr ""
 
-#: src/app/window.c:714
+#: src/app/window.c:950
 msgid "Cancelling safely…"
 msgstr ""
 
-#: src/app/window.c:787
+#: src/app/window.c:978
+msgid "Unable to export diagnostics."
+msgstr ""
+
+#: src/app/window.c:991
+msgid "Export operation diagnostics"
+msgstr ""
+
+#: src/app/window.c:994
+msgid "Export"
+msgstr ""
+
+#: src/app/window.c:1109
 msgid "Linux USB Creator"
 msgstr ""
 
-#: src/app/window.c:796
+#: src/app/window.c:1121
 msgid "1. Select an image"
 msgstr ""
 
-#: src/app/window.c:802
+#: src/app/window.c:1127
 msgid "ISO/raw image"
 msgstr ""
 
-#: src/app/window.c:803
+#: src/app/window.c:1128
 msgid "No image selected"
 msgstr ""
 
-#: src/app/window.c:804
+#: src/app/window.c:1129
 msgid "Choose…"
 msgstr ""
 
-#: src/app/window.c:810
+#: src/app/window.c:1131
+msgid "Choose an image (Ctrl+O)"
+msgstr ""
+
+#: src/app/window.c:1142
 msgid "Full verification"
 msgstr ""
 
-#: src/app/window.c:812
+#: src/app/window.c:1144
 msgid "Read the written image back and compare SHA-256"
 msgstr ""
 
-#: src/app/window.c:821
+#: src/app/window.c:1155
 msgid "Windows partition scheme"
 msgstr ""
 
-#: src/app/window.c:823
+#: src/app/window.c:1157
 msgid "Choose the firmware used by the target computer"
 msgstr ""
 
-#: src/app/window.c:829
+#: src/app/window.c:1162
+msgid "Linux writing mode"
+msgstr ""
+
+#: src/app/window.c:1164
+msgid "Choose raw compatibility or extracted Fedora UEFI media"
+msgstr ""
+
+#: src/app/window.c:1171
+msgid "Persistent Fedora session"
+msgstr ""
+
+#: src/app/window.c:1173
+msgid "Keep Live session changes in the ext4 data partition"
+msgstr ""
+
+#: src/app/window.c:1185
 msgid "2. Select the target USB device"
 msgstr ""
 
-#: src/app/window.c:830
+#: src/app/window.c:1186
 msgid "Scanning UDisks2…"
 msgstr ""
 
-#: src/app/window.c:841
+#: src/app/window.c:1197
 msgid "3. Confirm and write"
 msgstr ""
 
-#: src/app/window.c:842
+#: src/app/window.c:1198
 msgid ""
 "The system SSD and ineligible devices remain blocked. Writing requires "
 "explicit confirmation and Polkit authorization."
 msgstr ""
 
-#: src/app/window.c:849
-msgid "Ready"
-msgstr ""
-
-#: src/app/window.c:852
+#: src/app/window.c:1204 src/app/window.c:1212
 msgid "Choose an image and an available USB device."
 msgstr ""
 
-#: src/app/window.c:857
+#: src/app/window.c:1210
+msgid "Ready"
+msgstr ""
+
+#: src/app/window.c:1216
 msgid "Cancel operation"
 msgstr ""
 
-#: src/app/window.c:859
+#: src/app/window.c:1218
 msgid "Write image…"
+msgstr ""
+
+#: src/app/window.c:1220
+msgid "Review and write (Ctrl+Enter)"
+msgstr ""
+
+#: src/app/window.c:1243
+msgid "Creating bootable media"
+msgstr ""
+
+#: src/app/window.c:1255
+msgid "No bytes processed yet"
+msgstr ""
+
+#: src/app/window.c:1265
+msgid "Export diagnostics"
+msgstr ""
+
+#: src/app/window.c:1268
+msgid "Back to setup"
 msgstr ""

@@ -31,7 +31,7 @@ propietario ni binarios de las imágenes.
 
 ## Debian, Ubuntu, Arch y otros Linux
 
-Se identifican para mostrar distribución y arquitectura, pero en 0.6.0 usan
+Se identifican para mostrar distribución y arquitectura, pero desde 0.6.0 usan
 exclusivamente la escritura raw/híbrida. No se ofrece persistencia genérica:
 Debian Live, Ubuntu casper y otras familias emplean contratos de arranque y
 almacenamiento diferentes, que requieren perfiles y matrices independientes.

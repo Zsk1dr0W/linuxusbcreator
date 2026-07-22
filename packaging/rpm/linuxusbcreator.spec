@@ -1,5 +1,5 @@
 Name:           linuxusbcreator
-Version:        0.6.0
+Version:        0.7.0
 Release:        1%{?dist}
 Summary:        Native Linux utility for creating bootable USB media
 License:        GPL-3.0-or-later AND GPL-2.0-or-later
@@ -57,6 +57,11 @@ OverlayFS persistence, per-stage progress and complete file verification.
 %{_mandir}/man1/linuxusbcreator.1*
 
 %changelog
+* Tue Jul 21 2026 Víctor Díaz Gonzalez <106137683+Zsk1dr0W@users.noreply.github.com> - 0.7.0-1
+- Renew the graphical interface with an adaptive, task-oriented workflow
+- Improve device states, destructive confirmation and operation feedback
+- Preserve the existing raw, Windows and Fedora Live creation profiles
+
 * Mon Jul 20 2026 Víctor Díaz Gonzalez <106137683+Zsk1dr0W@users.noreply.github.com> - 0.6.0-1
 - Add extracted Fedora Live UEFI media with optional OverlayFS persistence
 - Preserve bundled shim/GRUB and verify all extracted files

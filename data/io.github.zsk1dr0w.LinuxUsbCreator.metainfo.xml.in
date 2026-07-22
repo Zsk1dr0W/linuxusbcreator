@@ -25,6 +25,12 @@
   </developer>
   <content_rating type="oars-1.1" />
   <releases>
+    <release version="0.7.0" date="2026-07-21">
+      <description>
+        <p>Renewed adaptive interface organized around image, destination, profile and operation tasks.</p>
+        <p>Clearer device states, destructive confirmation, progress details and accessible controls.</p>
+      </description>
+    </release>
     <release version="0.6.0" date="2026-07-20">
       <description>
         <p>Fedora Workstation Live x64 ISO mode with bundled UEFI shim/GRUB, separate FAT32 and ext4 partitions, and optional OverlayFS persistence.</p>

@@ -1,4 +1,4 @@
-.TH LINUXUSBCREATOR 1 "July 2026" "Linux USB Creator 0.6.0" "User Commands"
+.TH LINUXUSBCREATOR 1 "July 2026" "Linux USB Creator 0.7.0" "User Commands"
 .SH NAME
 linuxusbcreator \- inspect USB devices and write verified raw images
 .SH SYNOPSIS
@@ -39,7 +39,9 @@ run as root.
 .PP
 When started without options, the graphical interface selects a local ISO/raw
 image and an eligible USB target, requires destructive confirmation, and shows
-write and read-back verification percentages. Supported Windows installers
+the image, destination and profile in a task-oriented flow. Its dedicated
+operation view reports the current stage, percentage, transferred bytes and
+elapsed time. Supported Windows installers
 offer UEFI/GPT and, for compatible x64 images, BIOS/MBR; both use FAT32.
 Fedora Workstation Live x64 images additionally offer extracted UEFI media with
 optional persistent storage.
